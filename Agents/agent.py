@@ -4,7 +4,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
-from langchain_ollama import ChatOllama
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_core.messages import HumanMessage
 from langchain.tools import tool
 import json
@@ -101,9 +101,17 @@ async def main():
 
     for tool in tools:
        pretty_tool(tool)
+       
+    nvidiaModel = ChatNVIDIA(
+        model="z-ai/glm4.7",
+        api_key=os.environ["NVIDIA_API_KEY"],
+        temperature=1,
+        max_completion_tokens=20000,
+        top_p=0.95
+    )
     
     agente = create_agent(
-        model=ChatOllama(model="gemma4:26b",base_url="http://192.168.117.119:11434", reasoning=True, num_ctx=20000), # Usad alguno vuestro
+        model=nvidiaModel, # Usad alguno vuestro
         tools=all_tools,
         system_prompt="Eres un asistente que llama a herramientas. " \
         "Devuelve la salida en español si la tool devuelve la información en inglés." \
