@@ -1,0 +1,52 @@
+/* ============================================
+   DeckGrid Component
+   ============================================ */
+
+.deck-grid {
+  padding: 24px 0;
+}
+
+.deck-grid__title {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: #e8e6f0;
+  margin-bottom: 20px;
+}
+
+.deck-grid__container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+.deck-grid__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 24px;
+}
+
+.deck-grid__empty-icon {
+  font-size: 56px;
+  color: #2a2d4a;
+  margin-bottom: 16px;
+}
+
+.deck-grid__empty-title {
+  font-family: 'Cinzel', serif;
+  font-size: 18px;
+  color: #5d6080;
+  margin-bottom: 8px;
+}
+
+.deck-grid__empty-text {
+  font-size: 14px;
+  color: #5d6080;
+}
+
+@media (max-width: 768px) {
+  .deck-grid__container {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}

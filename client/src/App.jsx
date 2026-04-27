@@ -1,122 +1,132 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
+import { MOCK_DECKS, INITIAL_CHAT_MESSAGES, ASSISTANT_RESPONSES, COMMANDER_RECOMMENDATIONS } from './data/mockData';
+import Header from './components/Header/Header';
+import CreateDeckModal from './components/CreateDeckModal/CreateDeckModal';
+import MainPage from './pages/MainPage/MainPage';
+import DeckDetailPage from './pages/DeckDetailPage/DeckDetailPage';
+import './App.css';
+
+const SCRYFALL_IMG = (name) =>
+  `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=art_crop`;
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [decks, setDecks] = useState(MOCK_DECKS);
+  const [modalOpen, setModalOpen] = useState(false);
+
+  // Global Chat State
+  const [chatMessages, setChatMessages] = useState([...INITIAL_CHAT_MESSAGES]);
+  const [isChatTyping, setIsChatTyping] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(true);
+
+  const handleSendMessage = (text, isRecommendation = false) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    const userMsg = {
+      id: `msg-${Date.now()}`,
+      role: 'user',
+      content: trimmed,
+      timestamp: new Date().toISOString(),
+    };
+    setChatMessages((prev) => [...prev, userMsg]);
+    setIsChatTyping(true);
+    setIsChatOpen(true); // Ensure chat is visible
+
+    setTimeout(() => {
+      const responseText = isRecommendation 
+        ? COMMANDER_RECOMMENDATIONS 
+        : ASSISTANT_RESPONSES[Math.floor(Math.random() * ASSISTANT_RESPONSES.length)];
+      
+      const assistantMsg = {
+        id: `msg-${Date.now()}-reply`,
+        role: 'assistant',
+        content: responseText,
+        timestamp: new Date().toISOString(),
+      };
+      setChatMessages((prev) => [...prev, assistantMsg]);
+      setIsChatTyping(false);
+    }, 1200 + Math.random() * 800);
+  };
+
+  const handleCreateDeck = (values) => {
+    const newDeck = {
+      id: String(Date.now()),
+      name: `${values.commander} Deck`,
+      commander: values.commander,
+      commanderImage: SCRYFALL_IMG(values.commander),
+      budget: values.budget,
+      bracket: 2, // Siempre bracket 2 como se pidió
+      colors: ['W'], // Default color
+      cardCount: 0,
+      cards: [],
+    };
+    setDecks((prev) => [newDeck, ...prev]);
+    setModalOpen(false);
+  };
+
+  const handleDeleteDeck = (id) => {
+    setDecks((prev) => prev.filter((d) => d.id !== id));
+  };
+
+  const handleUpdateDeck = (id, updates) => {
+    setDecks((prev) =>
+      prev.map((d) => (d.id === id ? { ...d, ...updates } : d))
+    );
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="app-shell">
+      <Header 
+        onCreateDeck={() => setModalOpen(true)} 
+        isChatOpen={isChatOpen}
+        onToggleChat={() => setIsChatOpen(!isChatOpen)}
+      />
 
-      <div className="ticks"></div>
+      <div className="app-content">
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <MainPage 
+                decks={decks} 
+                onDeleteDeck={handleDeleteDeck}
+                chatMessages={chatMessages}
+                isChatTyping={isChatTyping}
+                onSendMessage={handleSendMessage}
+                isChatOpen={isChatOpen}
+                setIsChatOpen={setIsChatOpen}
+              />
+            }
+          />
+          <Route
+            path="/deck/:id"
+            element={
+              <DeckDetailPage 
+                decks={decks} 
+                onUpdateDeck={handleUpdateDeck}
+                chatMessages={chatMessages}
+                isChatTyping={isChatTyping}
+                onSendMessage={handleSendMessage}
+                isChatOpen={isChatOpen}
+                setIsChatOpen={setIsChatOpen}
+              />
+            }
+          />
+        </Routes>
+      </div>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      <CreateDeckModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        onSubmit={handleCreateDeck}
+        onRecommend={() => {
+          setModalOpen(false);
+          handleSendMessage('Dime los 10 mejores comandantes', true);
+        }}
+      />
+    </div>
+  );
 }
 
-export default App
+export default App;

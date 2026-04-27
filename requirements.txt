@@ -6,3 +6,8 @@ langchain-ollama
 langgraph
 langgraph-checkpoint-sqlite
 langchain_mcp_adapters
+
+# Frontend (npm) dependencies
+antd
+@ant-design/icons
+react-router-dom

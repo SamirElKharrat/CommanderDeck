@@ -1,0 +1,45 @@
+/* ============================================
+   CreateDeckModal Component
+   ============================================ */
+
+.create-deck-modal .ant-modal-header {
+  border-bottom: 1px solid #2a2d4a;
+  padding-bottom: 16px;
+}
+
+.create-deck-modal .ant-modal-title {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: #e8e6f0;
+}
+
+.create-deck-modal .ant-modal-footer {
+  border-top: 1px solid #2a2d4a;
+  padding-top: 16px;
+}
+
+.create-deck-modal__form {
+  padding: 8px 0;
+}
+
+.create-deck-modal__form .ant-form-item-label > label {
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  color: #c8cad4;
+}
+
+.create-deck-modal__bracket-option {
+  display: flex;
+  flex-direction: column;
+}
+
+.create-deck-modal__bracket-label {
+  font-weight: 500;
+  color: #e8e6f0;
+  font-size: 13px;
+}
+
+.create-deck-modal__bracket-desc {
+  font-size: 11px;
+  color: #5d6080;
+}

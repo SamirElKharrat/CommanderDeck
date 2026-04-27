@@ -1,0 +1,118 @@
+/* ============================================
+   DeckCard Component
+   ============================================ */
+
+.deck-card {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  border: 1px solid #2a2d4a;
+  background: #13152a;
+  cursor: pointer;
+}
+
+.deck-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 12px 36px rgba(212, 165, 55, 0.2);
+  border-color: rgba(212, 165, 55, 0.6);
+}
+
+.deck-card__image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: #1a1d35;
+}
+
+.deck-card__image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.deck-card:hover .deck-card__image {
+  transform: scale(1.08);
+}
+
+.deck-card__bracket-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(13, 15, 26, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(212, 165, 55, 0.5);
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: #d4a537;
+  letter-spacing: 0.5px;
+}
+
+.deck-card__body {
+  padding: 16px;
+  position: relative;
+}
+
+.deck-card__name {
+  font-family: 'Cinzel', serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: #e8e6f0;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 32px; /* Space for delete btn */
+}
+
+.deck-card__commander {
+  font-size: 13px;
+  color: #8b8fa6;
+  margin-bottom: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.deck-card__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.deck-card__colors {
+  display: flex;
+  gap: 4px;
+}
+
+.deck-card__color-img {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: none;
+  object-fit: contain;
+  background: #000; /* Standard background for mana symbols */
+  box-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
+
+.deck-card__card-count {
+  font-size: 12px;
+  color: #5d6080;
+}
+
+.deck-card__delete-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.deck-card:hover .deck-card__delete-btn {
+  opacity: 1;
+}
