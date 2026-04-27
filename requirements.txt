@@ -5,10 +5,4 @@ langchain-chroma
 langchain-ollama
 langgraph
 langgraph-checkpoint-sqlite
-
-chromadb
-pypdf
-beautifulsoup4
-playwright
-
 langchain_mcp_adapters
