@@ -2,6 +2,7 @@ import asyncio
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from dotenv import load_dotenv
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
@@ -12,7 +13,7 @@ from textwrap import indent
 from pyedhrec import EDHRec
 from rag.retriever import upload_deck
 
-
+load_dotenv()
 
 
 @tool
