@@ -5,19 +5,26 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from dotenv import load_dotenv
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage
-from langchain.tools import tool
+import aiosqlite
 import json
+import requests
 from textwrap import indent
 from pyedhrec import EDHRec
+from langchain.tools import tool
 from rag.retriever import upload_deck
 
+
 load_dotenv()
+SQLITE_PATH = os.path.join("E:\CommanderDeck\server", "commander_deck.db")
+
 
 
 @tool
-def get_commander_deck(commander: str, budget: str, collection: str):
+def get_commander_deck(commander: str, budget: str):
     """
     Obtiene el deck promedio de un commander de EDHRec y lo guardara en ChromaDB.
     
@@ -30,12 +37,46 @@ def get_commander_deck(commander: str, budget: str, collection: str):
         str: El deck promedio del commander.
     """
     edhrec = EDHRec()
+    cards = []
 
-    # Obtener el average deck
-    avg_deck = edhrec.get_commanders_average_deck(commander,budget)
+    # Obtener el average deck y los detalles de cada carta
+    try:
+        print(f"Obteniendo deck de {commander} con budget {budget}")
+        avg_deck = edhrec.get_commanders_average_deck(commander,budget)
+        
+        for card in avg_deck["decklist"]:
+            quantity = card.split(" ", 1)[0]
+            card = card.split(" ", 1)[1]
+            try:
+                card_details = edhrec.get_card_details(card)
+            except:
+                continue
+            cards.append({
+            "name": card_details.get("name", ""),
+            "quantity": quantity,
+            "details": card_details.get("oracle_text", ""),
+            "type": card_details.get("type", ""),
+            "mana_cost": card_details.get("mana_cost", ""),
+            "version": card_details.get("unique_artwork", [{}])[0].get("image_uris", [""])[0]
+            })
+            
+        response = requests.post("http://localhost:8000/api/decks", json={
+            "deck_name": commander,
+            "type": "commander",
+            "bracket": budget,
+            "partner": 0,
+            "cards": cards
+        }, headers={"Authorization": f"Bearer X"})
+    
+    except Exception as e:
+        return f"Error al obtener el deck de {commander}: {e}"
+    
+    
     
     # Guardar en ChromaDB
-    upload_deck(avg_deck["decklist"], collection)
+    collection_name = f"{commander}_{response.json()['id']}"
+    print(f"Collection name: {collection_name}")
+    upload_deck(avg_deck["decklist"], collection_name)
     
     return f"El deck de {commander} ha sido creado"
 
@@ -70,63 +111,61 @@ def pretty_tool(tool):
     print("-" * 50)
 
 
-async def main():
+# Variables globales para reutilización
+_client = None
+_agente = None
+_checkpointer = None
 
-    client = MultiServerMCPClient(
-        {
-            "magicCommander": {
-                "transport": "stdio",
-                "command": "python",
-                "args": ["-m", "mtg_mcp"]
+async def process_prompt(prompt: str, thread_id: str = None):
+    """Inicializa el agente y lo cachea para reutilización"""
+    global _client, _agente, _checkpointer
+    
+    # Inicializar checkpointer SQLite persistente
+    async with AsyncSqliteSaver.from_conn_string(SQLITE_PATH) as _checkpointer:
+        _client = MultiServerMCPClient(
+            {
+                "magicCommander": {
+                    "transport": "stdio",
+                    "command": "python",
+                    "args": ["-m", "mtg_mcp"]
+                }
             }
+        )
+ 
+        # Nos descargamos las herramientas
+        tools = await _client.get_tools()
+    
+        custom_tools = [get_commander_deck]
+        all_tools = tools + custom_tools
+ 
+        nvidiaModel = ChatOllama(model="gemma4:e4b", reasoning=True)
+    
+        _agente = create_agent(
+            model=nvidiaModel,
+            tools=all_tools,
+            checkpointer=_checkpointer,
+            system_prompt="Eres un asistente que llama a herramientas. " \
+            "Devuelve la salida en español si la tool devuelve la información en inglés." \
+            "Si el usuario no da la información de budget, asume que es budget." \
+            "La salida debe estar bonita y legible." \
+            "Si una tool suelta un error solo devuelve ese error, no intentes hacer nada si las tools no funcionan"  
+        )
+    
+        if thread_id is None:
+            thread_id = "default"
+    
+        config = {
+            "configurable": {"thread_id": thread_id}
         }
-    )
-
-    # Nos descargamos las herramientas
-    tools = await client.get_tools()
     
-    custom_tools = [get_commander_deck]
+        response_parts = []
     
-    all_tools = tools + custom_tools
-
-
-    try:
-        prompts = await client.get_prompt("magicCommander", "nombrePrompt1") # Ejemplo
-    except Exception as e:
-        print("No existe el prompt con el nombre asociado")
-    
-    try:
-        resources = await client.get_resources()
-    except Exception as e:
-        print("No existen recursos en este MCP")
-
-    for tool in tools:
-       pretty_tool(tool)
-       
-    nvidiaModel = ChatNVIDIA(
-        model="z-ai/glm4.7",
-        api_key=os.environ["NVIDIA_API_KEY"],
-        temperature=1,
-        max_completion_tokens=20000,
-        top_p=0.95
-    )
-    
-    agente = create_agent(
-        model=nvidiaModel, # Usad alguno vuestro
-        tools=all_tools,
-        system_prompt="Eres un asistente que llama a herramientas. " \
-        "Devuelve la salida en español si la tool devuelve la información en inglés." \
-        "Si el usuario no da la información de budget, asume que es budget." \
-        "La salida debe estar bonita y legible."
-    )
-
-
-    while (prompt := input("> ")) != "end":
-       async for paso in agente.astream({
+        async for paso in _agente.astream({
             "messages": [
                 HumanMessage(prompt)
             ]
-        }, stream_mode="values"):
+        }, stream_mode="values",
+        config=config):
             ultimo_mensaje = paso["messages"][-1]
 
             hayRazonamiento = ""
@@ -138,8 +177,16 @@ async def main():
                 print(hayRazonamiento)
 
             print("\n=== MENSAJE ===")
-            ultimo_mensaje.pretty_print()
+            if not isinstance(ultimo_mensaje, HumanMessage): # para que no me repita dos veces el msg del user
+                        ultimo_mensaje.pretty_print()
 
+        return ultimo_mensaje.content
 
-# Lanzamos de forma concurrente. Es como la clase Thread de Java
-asyncio.run(main())
+async def main():
+    while (prompt := input("> ")) != "end":
+        response = await process_prompt(prompt, "console_thread")
+        print(f"\n=== RESPUESTA ===")
+        print(response)
+
+if __name__ == "__main__":
+    asyncio.run(main())

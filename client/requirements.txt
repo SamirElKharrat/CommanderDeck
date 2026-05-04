@@ -1,0 +1,4 @@
+# Frontend (npm) dependencies
+antd
+react-router-dom
+@ant-design/icons
