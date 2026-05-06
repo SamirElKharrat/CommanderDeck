@@ -81,9 +81,9 @@ def get_commander_deck(commander: str, budget: str):
     return f"El deck de {commander} ha sido creado"
 
 @tool
-def add_card(deck_id: int, card_list: list[str]):
+def add_cards(deck_id: int, card_list: list[str]):
     """
-    Agrega una carta al deck.
+    Agrega cartas al deck.
     
     Args:
         deck_id (int): El ID del deck.
@@ -119,6 +119,44 @@ def add_card(deck_id: int, card_list: list[str]):
     
     return f"Las cartas {json_cards_list} han sido agregadas"
 
+@tool
+def remove_cards(deck_id: int, card_list: list[str]):
+    """
+    Remueve cartas del deck.
+    
+    Args:
+        deck_id (int): El ID del deck.
+        card_list (list(str)): La lista de cartas a remover con sus cantidades. Ejemplo: ["2 Sol Ring", "1 Lightning Bolt"]
+    
+    Returns:
+        str: La carta removida.
+    """
+    edhrec = EDHRec()
+    
+    json_cards_list = []
+    for card in card_list:
+        quantity = card.split(" ", 1)[0]
+        card = card.split(" ", 1)[1]
+        try:
+            card_detail = edhrec.get_card_details(card)
+        except:
+            return f"La carta {card} no se encontró"
+        json_cards_list.append({
+            "name": card_detail.get("name", ""),
+            "quantity": quantity,
+            "details": card_detail.get("oracle_text", ""),
+            "type": card_detail.get("type", ""),
+            "mana_cost": card_detail.get("mana_cost", ""),
+            "version": card_detail.get("unique_artwork", [{}])[0].get("image_uris", [""])[0]
+        })
+        
+    response = requests.post("http://localhost:8000/api/decks/remove-card", json={
+        "deck_id": deck_id,
+        "card_data": json_cards_list
+    }, headers={"Authorization": f"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg2ODQ2ODMsInN1YiI6IjEifQ.Vg0uQ4wAqQtRWic1HoH3CC7cp6U2NQBYOqvt_Xve9OE"})
+    
+    return f"Las cartas {json_cards_list} han sido removidas"
+
 
 # Variables globales para reutilización
 _client = None
@@ -144,7 +182,7 @@ async def process_prompt(prompt: str, thread_id: str = None):
         # Nos descargamos las herramientas
         tools = await _client.get_tools()
     
-        custom_tools = [get_commander_deck, add_card]
+        custom_tools = [get_commander_deck, add_cards, remove_cards]
         all_tools = tools + custom_tools
  
         nvidiaModel = ChatOllama(model="gemma4:e2b", reasoning=True)
@@ -158,7 +196,7 @@ async def process_prompt(prompt: str, thread_id: str = None):
             "Si el usuario no da la información de budget, asume que es budget." \
             "La salida debe estar bonita y legible." \
             "Si una tool suelta un error solo devuelve ese error, no intentes hacer nada si las tools no funcionan" \
-            "Si el usuario pide agregar 2 Plains por ejemplo, manda '2 Plains' (sin comillas), no una lista con 2 plains"
+            "Si el usuario pide agregar o quitar 2 Plains por ejemplo, manda '2 Plains' (sin comillas), no una lista con 2 plains"
         )
     
         if thread_id is None:
