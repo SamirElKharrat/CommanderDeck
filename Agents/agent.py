@@ -19,7 +19,7 @@ from rag.retriever import upload_deck
 
 
 load_dotenv()
-SQLITE_PATH = os.path.join("E:\CommanderDeck\server", "commander_deck.db")
+SQLITE_PATH = os.path.join("C:\\Users\\coman\\Desktop\\CommanderDeck\\server", "commander_deck.db")
 
 
 
@@ -80,35 +80,44 @@ def get_commander_deck(commander: str, budget: str):
     
     return f"El deck de {commander} ha sido creado"
 
-# Esta función pinta de forma bonita las herramientas que se descargan de un mcp
-def pretty_tool(tool):
-    print(f"\n🛠️ TOOL: {tool.name}")
-    print("-" * 50)
-
-    print("📄 Descripción:")
-    print(indent(tool.description.strip(), "  "))
-
-    print("\n📥 Argumentos (JSON Schema):")
-    try:
-        schema = tool.args_schema
-        print(indent(json.dumps(schema, indent=2, ensure_ascii=False), "  "))
-    except Exception:
-        print("  No disponible")
-
-    print("\n📌 Campos requeridos:")
-    try:
-        required = tool.args_schema.get("required", [])
-        print(f"  {required}")
-    except Exception:
-        print("  No disponible")
-
-    print("\n⚙️ Response format:")
-    print(f"  {getattr(tool, 'response_format', 'N/A')}")
-
-    print("\n🔧 Tipo:")
-    print(f"  {type(tool)}")
-
-    print("-" * 50)
+@tool
+def add_card(deck_id: int, card_list: list[str]):
+    """
+    Agrega una carta al deck.
+    
+    Args:
+        deck_id (int): El ID del deck.
+        card_list (list(str)): La lista de cartas a agregar con sus cantidades. Ejemplo: ["2 Sol Ring", "1 Lightning Bolt"]
+    
+    Returns:
+        str: La carta agregada.
+    """
+    edhrec = EDHRec()
+    
+    
+    json_cards_list = []
+    for card in card_list:
+        quantity = card.split(" ", 1)[0]
+        card = card.split(" ", 1)[1]
+        try:
+            card_detail = edhrec.get_card_details(card)
+        except:
+            return f"La carta {card} no se encontró"
+        json_cards_list.append({
+            "name": card_detail.get("name", ""),
+            "quantity": quantity,
+            "details": card_detail.get("oracle_text", ""),
+            "type": card_detail.get("type", ""),
+            "mana_cost": card_detail.get("mana_cost", ""),
+            "version": card_detail.get("unique_artwork", [{}])[0].get("image_uris", [""])[0]
+        })
+        
+    response = requests.post("http://localhost:8000/api/decks/add-card", json={
+        "deck_id": deck_id,
+        "card_data": json_cards_list
+    }, headers={"Authorization": f"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg2ODQ2ODMsInN1YiI6IjEifQ.Vg0uQ4wAqQtRWic1HoH3CC7cp6U2NQBYOqvt_Xve9OE"})
+    
+    return f"Las cartas {json_cards_list} han sido agregadas"
 
 
 # Variables globales para reutilización
@@ -135,10 +144,10 @@ async def process_prompt(prompt: str, thread_id: str = None):
         # Nos descargamos las herramientas
         tools = await _client.get_tools()
     
-        custom_tools = [get_commander_deck]
+        custom_tools = [get_commander_deck, add_card]
         all_tools = tools + custom_tools
  
-        nvidiaModel = ChatOllama(model="gemma4:e4b", reasoning=True)
+        nvidiaModel = ChatOllama(model="gemma4:e2b", reasoning=True)
     
         _agente = create_agent(
             model=nvidiaModel,
@@ -148,7 +157,8 @@ async def process_prompt(prompt: str, thread_id: str = None):
             "Devuelve la salida en español si la tool devuelve la información en inglés." \
             "Si el usuario no da la información de budget, asume que es budget." \
             "La salida debe estar bonita y legible." \
-            "Si una tool suelta un error solo devuelve ese error, no intentes hacer nada si las tools no funcionan"  
+            "Si una tool suelta un error solo devuelve ese error, no intentes hacer nada si las tools no funcionan" \
+            "Si el usuario pide agregar 2 Plains por ejemplo, manda '2 Plains' (sin comillas), no una lista con 2 plains"
         )
     
         if thread_id is None:

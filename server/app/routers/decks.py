@@ -68,9 +68,44 @@ async def add_card_to_deck(
     # Normalizar: si es una sola carta, convertirla en lista para el bucle
     new_cards_list = [card_data] if isinstance(card_data, CardItem) else card_data
     
-    # Añadir las nuevas cartas
+    # Comprobar si la carta ya existe en el deck, si es asi, sumar la cantidad
     for card in new_cards_list:
-        current_cards.append(card.model_dump())
+        for current_card in current_cards:
+            if current_card['name'] == card.name:
+                current_card['quantity'] += card.quantity
+                break
+        else:
+            current_cards.append(card.model_dump())
+
+    
+    deck_in = DeckUpdate(
+        cards=current_cards
+    )
+    return await update_deck(deck_id, deck_in, current_user, db)
+
+@router.post("/remove-card", response_model=DeckOut)
+async def remove_card_from_deck(
+    deck_id: int,
+    card_name: str,
+    quantity: int,
+    current_user: aiosqlite.Row = Depends(get_current_user),
+    db: aiosqlite.Connection = Depends(get_db)
+):
+    cursor = await db.execute("SELECT * FROM decks WHERE id = ? AND user_id = ?", (deck_id, current_user['id']))
+    deck = await cursor.fetchone()
+    if not deck:
+        raise HTTPException(status_code=404, detail="Deck not found")
+    
+    # Convertir el string JSON de la base de datos a una lista de Python
+    current_cards = json.loads(deck['cards'])
+    
+    # Remover la cantidad de esa carta y si es menor a 1, eliminarla
+    for card in current_cards:
+        if card['name'] == card_name:
+            card['quantity'] -= quantity
+            if card['quantity'] <= 0:
+                current_cards.remove(card)
+            break
     
     deck_in = DeckUpdate(
         cards=current_cards
