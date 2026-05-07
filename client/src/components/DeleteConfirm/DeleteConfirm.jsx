@@ -1,4 +1,4 @@
-import { Modal, Button } from 'antd';
+import { Modal } from 'antd';
 import { ExclamationCircleOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 

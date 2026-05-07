@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { MOCK_DECKS, INITIAL_CHAT_MESSAGES, ASSISTANT_RESPONSES, COMMANDER_RECOMMENDATIONS } from './data/mockData';
 import Header from './components/Header/Header';
 import CreateDeckModal from './components/CreateDeckModal/CreateDeckModal';
 import MainPage from './pages/MainPage/MainPage';
@@ -11,11 +10,11 @@ const SCRYFALL_IMG = (name) =>
   `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(name)}&format=image&version=art_crop`;
 
 function App() {
-  const [decks, setDecks] = useState(MOCK_DECKS);
+  const [decks, setDecks] = useState();
   const [modalOpen, setModalOpen] = useState(false);
 
   // Global Chat State
-  const [chatMessages, setChatMessages] = useState([...INITIAL_CHAT_MESSAGES]);
+  const [chatMessages, setChatMessages] = useState();
   const [isChatTyping, setIsChatTyping] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(true);
 
@@ -35,8 +34,6 @@ function App() {
 
     setTimeout(() => {
       const responseText = isRecommendation 
-        ? COMMANDER_RECOMMENDATIONS 
-        : ASSISTANT_RESPONSES[Math.floor(Math.random() * ASSISTANT_RESPONSES.length)];
       
       const assistantMsg = {
         id: `msg-${Date.now()}-reply`,

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Button, Drawer } from 'antd';
 import { MessageOutlined } from '@ant-design/icons';
 import DeckGrid from '../../components/DeckGrid/DeckGrid';
@@ -21,7 +20,7 @@ export default function MainPage({
   return (
     <div className="main-page" id="main-page">
       <div className="main-page__content">
-        <DeckGrid decks={decks} onDelete={onDeleteDeck} />
+        <DeckGrid decks={decks || []} onDelete={onDeleteDeck} />
       </div>
 
       {/* Desktop chat sidebar */}

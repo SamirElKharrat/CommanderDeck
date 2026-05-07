@@ -1,11 +1,10 @@
 import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Input, Select, Divider, Drawer, Tooltip } from 'antd';
+import { Button, Input, Divider, Drawer, Tooltip } from 'antd';
 import {
   ArrowLeftOutlined,
   MessageOutlined,
 } from '@ant-design/icons';
-import { COLOR_MAP, BUDGET_INFO } from '../../data/mockData';
 import ChatAssistant from '../../components/ChatAssistant/ChatAssistant';
 import CardList from '../../components/CardList/CardList';
 import './DeckDetailPage.css';
@@ -39,11 +38,6 @@ export default function DeckDetailPage({
   const handleRemoveCard = (cardId) => {
     setLocalCards((prev) => prev.filter((c) => c.id !== cardId));
   };
-
-  const budgetOptions = Object.entries(BUDGET_INFO).map(([key, info]) => ({
-    value: key,
-    label: info.label,
-  }));
 
   return (
     <div className="deck-detail" id="deck-detail-page">
@@ -94,11 +88,11 @@ export default function DeckDetailPage({
 
               <div className="deck-detail__colors">
                 {deck.colors.map((c) => (
-                  <Tooltip key={c} title={COLOR_MAP[c]?.label || c}>
+                  <Tooltip key={c} title={[c]?.label || c}>
                     <img 
                       className="deck-detail__color-dot"
                       style={{ objectFit: 'contain', padding: 0, background: '#000', border: 'none' }}
-                      src={COLOR_MAP[c]?.image} 
+                      src={[c]} 
                       alt={c} 
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />

@@ -1,6 +1,5 @@
 import { Modal, Form, Input, Select, Button } from 'antd';
 import { CrownOutlined } from '@ant-design/icons';
-import { BUDGET_INFO } from '../../data/mockData';
 import './CreateDeckModal.css';
 
 export default function CreateDeckModal({ open, onClose, onSubmit, onRecommend }) {
@@ -18,7 +17,7 @@ export default function CreateDeckModal({ open, onClose, onSubmit, onRecommend }
     onClose();
   };
 
-  const budgetOptions = Object.entries(BUDGET_INFO).map(([key, info]) => ({
+  const budgetOptions = Object.entries([]).map(([key, info]) => ({
     value: key,
     label: (
       <div className="create-deck-modal__bracket-option">

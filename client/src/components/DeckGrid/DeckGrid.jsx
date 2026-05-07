@@ -16,9 +16,9 @@ export default function DeckGrid({ decks, onDelete }) {
             </p>
           </div>
         ) : (
-          decks.map((deck) => (
+          decks.length > 0 ? decks.map((deck) => (
             <DeckCard key={deck.id} deck={deck} onDelete={onDelete} />
-          ))
+          )) : null
         )}
       </div>
     </div>

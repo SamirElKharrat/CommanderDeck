@@ -1,7 +1,6 @@
 import { Button, Tooltip } from 'antd';
 import { DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { COLOR_MAP, BUDGET_INFO } from '../../data/mockData';
 import DeleteConfirm from '../DeleteConfirm/DeleteConfirm';
 import './DeckCard.css';
 
@@ -34,10 +33,10 @@ export default function DeckCard({ deck, onDelete }) {
         <div className="deck-card__meta">
           <div className="deck-card__colors">
             {deck.colors.map((c) => (
-              <Tooltip key={c} title={COLOR_MAP[c]?.label || c}>
+              <Tooltip key={c} title={c?.label || c}>
                 <img 
                   className="deck-card__color-img"
-                  src={COLOR_MAP[c]?.image} 
+                  src={c?.image} 
                   alt={c} 
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
