@@ -63,7 +63,7 @@ def get_commander_deck(commander: str, budget: str):
         response = requests.post("http://localhost:8000/api/decks", json={
             "deck_name": commander,
             "type": "commander",
-            "bracket": budget,
+            "bracket": "2",
             "partner": 0,
             "cards": cards
         }, headers={"Authorization": f"Bearer X"})
@@ -111,7 +111,10 @@ def add_cards(deck_id: int, card_list: list[str]):
             "mana_cost": card_detail.get("mana_cost", ""),
             "version": card_detail.get("unique_artwork", [{}])[0].get("image_uris", [""])[0]
         })
-        
+    
+    # Añadimos las cartas al ChromaDB especifico
+    
+    # Añadimos las cartas mediante la api    
     response = requests.post("http://localhost:8000/api/decks/add-card", json={
         "deck_id": deck_id,
         "card_data": json_cards_list
@@ -150,12 +153,50 @@ def remove_cards(deck_id: int, card_list: list[str]):
             "version": card_detail.get("unique_artwork", [{}])[0].get("image_uris", [""])[0]
         })
         
+    # Eliminamos las cartas al ChromaDB especifico
+        
+    # Eliminamos las cartas mediante la api    
     response = requests.post("http://localhost:8000/api/decks/remove-card", json={
         "deck_id": deck_id,
         "card_data": json_cards_list
     }, headers={"Authorization": f"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg2ODQ2ODMsInN1YiI6IjEifQ.Vg0uQ4wAqQtRWic1HoH3CC7cp6U2NQBYOqvt_Xve9OE"})
     
     return f"Las cartas {json_cards_list} han sido removidas"
+
+@tool
+def deck_info(deck_id: int):
+    """
+    Consulta el deck actual.
+    
+    Args:
+        deck_id (int): El ID del deck.
+    
+    Returns:
+        dict: El deck actual.
+    """
+    response = requests.get(f"http://localhost:8000/api/decks/{deck_id}", headers={"Authorization": f"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg3Njg4MTAsInN1YiI6IjEifQ.-J0cGK7xRTDfHuJNxbiig-9m4RguSXjb6b92wm4Chbo"})
+    
+    return response.json()
+
+@tool
+def update_deck(deck_id:int, bracket: str):
+    """
+    Actualización del mazo.
+    
+    Args:
+        deck_id (int): El ID del deck.
+        bracket (str): El bracket actualizado.
+    
+    Returns:
+        str: El mazo actualizado.
+    """
+    
+    response = requests.put(f"http://localhost:8000/api/decks/{deck_id}", json={
+        "bracket": bracket
+    }, headers={"Authorization": f"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3Nzg3Njg4MTAsInN1YiI6IjEifQ.-J0cGK7xRTDfHuJNxbiig-9m4RguSXjb6b92wm4Chbo"})
+    
+    return response.json()
+    
 
 
 # Variables globales para reutilización
@@ -182,10 +223,10 @@ async def process_prompt(prompt: str, thread_id: str = None):
         # Nos descargamos las herramientas
         tools = await _client.get_tools()
     
-        custom_tools = [get_commander_deck, add_cards, remove_cards]
+        custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck]
         all_tools = tools + custom_tools
  
-        nvidiaModel = ChatOllama(model="gemma4:e2b", reasoning=True)
+        nvidiaModel = ChatOllama(model="gemma4:e2b", reasoning=True, max_tokens=12000)
     
         _agente = create_agent(
             model=nvidiaModel,
@@ -196,7 +237,8 @@ async def process_prompt(prompt: str, thread_id: str = None):
             "Si el usuario no da la información de budget, asume que es budget." \
             "La salida debe estar bonita y legible." \
             "Si una tool suelta un error solo devuelve ese error, no intentes hacer nada si las tools no funcionan" \
-            "Si el usuario pide agregar o quitar 2 Plains por ejemplo, manda '2 Plains' (sin comillas), no una lista con 2 plains"
+            "Si el usuario pide agregar o quitar 2 Plains por ejemplo, manda '2 Plains' (sin comillas), no una lista con 2 plains" \
+            "Si se pide bracket_info se manda en str la información de todos los brackets disponibles"
         )
     
         if thread_id is None:
