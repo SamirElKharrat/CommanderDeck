@@ -33,11 +33,11 @@ export default function DeckCard({ deck, onDelete }) {
         <div className="deck-card__meta">
           <div className="deck-card__colors">
             {deck.colors.map((c) => (
-              <Tooltip key={c} title={c?.label || c}>
-                <img 
+              <Tooltip key={c} title={c}>
+                <img
                   className="deck-card__color-img"
-                  src={c?.image} 
-                  alt={c} 
+                  src={`https://svgs.scryfall.io/card-symbols/${c}.svg`}
+                  alt={c}
                   onError={(e) => { e.target.style.display = 'none'; }}
                 />
               </Tooltip>

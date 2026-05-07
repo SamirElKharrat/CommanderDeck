@@ -1,12 +1,13 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button, Input, Divider, Drawer, Tooltip } from 'antd';
+import { Button, Input, Divider, Drawer, Tooltip, message } from 'antd';
 import {
   ArrowLeftOutlined,
   MessageOutlined,
 } from '@ant-design/icons';
 import ChatAssistant from '../../components/ChatAssistant/ChatAssistant';
 import CardList from '../../components/CardList/CardList';
+import { updateDeck as apiUpdateDeck, removeCardFromDeck } from '../../api/decks';
 import './DeckDetailPage.css';
 
 export default function DeckDetailPage({ 
@@ -16,15 +17,35 @@ export default function DeckDetailPage({
   isChatTyping,
   onSendMessage,
   isChatOpen,
-  setIsChatOpen
+  setIsChatOpen,
+  setActiveDeckId,
+  onRefreshDecks
 }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const deck = useMemo(() => decks.find((d) => d.id === id), [decks, id]);
+  const deck = useMemo(() => decks.find((d) => String(d.id) === String(id)), [decks, id]);
 
   const [editName, setEditName] = useState(deck?.name || '');
   const [localCards, setLocalCards] = useState(deck?.cards || []);
+
+  // Set the active deck id for chat context
+  useEffect(() => {
+    if (id && setActiveDeckId) {
+      setActiveDeckId(parseInt(id));
+    }
+    return () => {
+      if (setActiveDeckId) setActiveDeckId(null);
+    };
+  }, [id, setActiveDeckId]);
+
+  // Update local state when deck data changes (e.g., after chat action refreshes decks)
+  useEffect(() => {
+    if (deck) {
+      setEditName(deck.name);
+      setLocalCards(deck.cards);
+    }
+  }, [deck]);
 
   if (!deck) {
     return (
@@ -35,8 +56,28 @@ export default function DeckDetailPage({
     );
   }
 
-  const handleRemoveCard = (cardId) => {
-    setLocalCards((prev) => prev.filter((c) => c.id !== cardId));
+  const handleRemoveCard = async (cardId, quantity = 1) => {
+    const card = localCards.find((c) => c.id === cardId);
+    if (card) {
+      try {
+        await removeCardFromDeck(deck.id, card.name, quantity);
+        message.success(`${quantity}x ${card.name} quitado`);
+        // Refresh decks to sync state
+        if (onRefreshDecks) await onRefreshDecks();
+      } catch (err) {
+        message.error('Error al quitar carta: ' + err.message);
+      }
+    }
+  };
+
+  const handleSaveName = async () => {
+    try {
+      await apiUpdateDeck(deck.id, { deck_name: editName.replace(' Deck', '') });
+      onUpdateDeck(deck.id, { name: editName });
+      message.success('Nombre actualizado');
+    } catch (err) {
+      message.error(err.message);
+    }
   };
 
   return (
@@ -49,11 +90,7 @@ export default function DeckDetailPage({
             type="text"
             icon={<ArrowLeftOutlined />}
             className="deck-detail__back-btn"
-            onClick={() => {
-              // Navigation back to list
-              onUpdateDeck(id, { name: editName, cards: localCards });
-              navigate('/');
-            }}
+            onClick={() => navigate('/')}
             id="back-to-main"
           >
             Volver a mis mazos
@@ -75,6 +112,8 @@ export default function DeckDetailPage({
               className="deck-detail__edit-name"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
+              onBlur={handleSaveName}
+              onPressEnter={handleSaveName}
               size="large"
               style={{ fontFamily: "'Cinzel', serif", fontSize: 22, fontWeight: 700 }}
               id="edit-deck-name"
@@ -86,23 +125,13 @@ export default function DeckDetailPage({
                 Bracket {deck.bracket}
               </span>
 
-              <div className="deck-detail__colors">
-                {deck.colors.map((c) => (
-                  <Tooltip key={c} title={[c]?.label || c}>
-                    <img 
-                      className="deck-detail__color-dot"
-                      style={{ objectFit: 'contain', padding: 0, background: '#000', border: 'none' }}
-                      src={[c]} 
-                      alt={c} 
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
-                  </Tooltip>
-                ))}
-              </div>
-
               <span className="deck-detail__card-count">
-                {localCards.length} cartas
+                {localCards.length} cartas ({localCards.reduce((sum, c) => sum + (c.quantity || 1), 0)} total)
               </span>
+            </div>
+
+            <div className="deck-detail__chat-hint">
+              <span>💡 Usa el chat para añadir/quitar cartas o cambiar el bracket</span>
             </div>
           </div>
         </div>
@@ -115,6 +144,7 @@ export default function DeckDetailPage({
           cards={localCards}
           isEditMode={true}
           onRemoveCard={handleRemoveCard}
+          commanderName={deck.commander}
         />
       </div>
 

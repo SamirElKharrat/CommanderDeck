@@ -2,30 +2,26 @@ import { Modal, Form, Input, Select, Button } from 'antd';
 import { CrownOutlined } from '@ant-design/icons';
 import './CreateDeckModal.css';
 
-export default function CreateDeckModal({ open, onClose, onSubmit, onRecommend }) {
+const BUDGET_OPTIONS = [
+  { value: 'budget', label: 'Budget — Económico, cartas accesibles' },
+  { value: 'expensive', label: 'Expensive — Sin límite de precio' },
+];
+
+export default function CreateDeckModal({ open, onClose, onSubmit, onRecommend, loading }) {
   const [form] = Form.useForm();
 
   const handleOk = () => {
     form.validateFields().then((values) => {
       onSubmit(values);
-      form.resetFields();
+      // form.resetFields(); // Don't reset yet in case of error
     });
   };
 
   const handleCancel = () => {
+    if (loading) return;
     form.resetFields();
     onClose();
   };
-
-  const budgetOptions = Object.entries([]).map(([key, info]) => ({
-    value: key,
-    label: (
-      <div className="create-deck-modal__bracket-option">
-        <span className="create-deck-modal__bracket-label">{info.label}</span>
-        <span className="create-deck-modal__bracket-desc">{info.description}</span>
-      </div>
-    ),
-  }));
 
   return (
     <Modal
@@ -38,12 +34,16 @@ export default function CreateDeckModal({ open, onClose, onSubmit, onRecommend }
       open={open}
       onOk={handleOk}
       onCancel={handleCancel}
-      okText="Crear Mazo"
+      confirmLoading={loading}
+      okText={loading ? 'Creando...' : 'Crear Mazo'}
       cancelText="Cancelar"
       className="create-deck-modal"
       width={480}
       destroyOnClose
       id="create-deck-modal"
+      maskClosable={!loading}
+      closable={!loading}
+      cancelButtonProps={{ disabled: loading }}
     >
       <Form
         form={form}
@@ -71,7 +71,7 @@ export default function CreateDeckModal({ open, onClose, onSubmit, onRecommend }
             type="primary"
             size="small"
             onClick={onRecommend}
-            style={{ background: '#d4a537', color: '#0d0f1a', fontWeight: 600, border: 'none' }}
+            style={{ background: '#d4a537', color: '#0d0f1a', fontWeight: 600, border: 'none', flexShrink: 0, marginLeft: 12 }}
           >
             Recomiéndame
           </Button>
@@ -80,12 +80,13 @@ export default function CreateDeckModal({ open, onClose, onSubmit, onRecommend }
         <Form.Item
           name="budget"
           label="Presupuesto"
+          initialValue="budget"
           rules={[{ required: true, message: 'Selecciona un presupuesto' }]}
         >
           <Select
             placeholder="Selecciona el presupuesto del mazo"
             size="large"
-            options={budgetOptions}
+            options={BUDGET_OPTIONS}
             id="budget-select"
           />
         </Form.Item>

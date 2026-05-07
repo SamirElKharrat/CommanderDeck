@@ -138,6 +138,16 @@
   margin-bottom: 16px;
 }
 
+.deck-detail__chat-hint {
+  margin-top: 12px;
+  padding: 8px 14px;
+  background: rgba(212, 165, 55, 0.06);
+  border: 1px solid rgba(212, 165, 55, 0.15);
+  border-radius: 8px;
+  font-size: 13px;
+  color: #8b8fa6;
+}
+
 @media (max-width: 992px) {
   .deck-detail__chat-panel {
     display: none;

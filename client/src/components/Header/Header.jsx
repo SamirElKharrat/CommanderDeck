@@ -1,12 +1,32 @@
-import { Button, Tooltip } from 'antd';
-import { PlusOutlined, CrownOutlined, RobotOutlined } from '@ant-design/icons';
+import { Button, Tooltip, Dropdown } from 'antd';
+import { PlusOutlined, CrownOutlined, RobotOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Header.css';
 
-export default function Header({ onCreateDeck, isChatOpen, onToggleChat }) {
+export default function Header({ user, onCreateDeck, isChatOpen, onToggleChat, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
   const isMainPage = location.pathname === '/';
+
+  const userMenuItems = [
+    {
+      key: 'user-info',
+      label: (
+        <span style={{ color: '#e8e6f0', fontWeight: 500 }}>
+          {user?.user_name || 'Usuario'}
+        </span>
+      ),
+      disabled: true,
+    },
+    { type: 'divider' },
+    {
+      key: 'logout',
+      label: 'Cerrar sesión',
+      icon: <LogoutOutlined />,
+      danger: true,
+      onClick: onLogout,
+    },
+  ];
 
   return (
     <header className="app-header" id="app-header">
@@ -46,6 +66,17 @@ export default function Header({ onCreateDeck, isChatOpen, onToggleChat }) {
             Crear Mazo
           </Button>
         )}
+
+        <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
+          <Button
+            type="text"
+            className="app-header__user-btn"
+            icon={<UserOutlined />}
+            id="user-menu-btn"
+          >
+            <span className="app-header__user-name">{user?.user_name}</span>
+          </Button>
+        </Dropdown>
       </div>
     </header>
   );
