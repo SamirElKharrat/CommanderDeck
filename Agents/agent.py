@@ -6,16 +6,11 @@ from dotenv import load_dotenv
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage
-import aiosqlite
-import json
 import requests
-from textwrap import indent
 from pyedhrec import EDHRec
 from langchain.tools import tool
-from rag.retriever import upload_deck
 
 
 load_dotenv()
@@ -78,13 +73,6 @@ def get_commander_deck(commander: str, budget: str):
     
     except Exception as e:
         return f"Error al obtener el deck de {commander}: {e}"
-    
-    
-    
-    # Guardar en ChromaDB
-    collection_name = f"{commander}_{response.json()['id']}"
-    print(f"Collection name: {collection_name}")
-    upload_deck(avg_deck["decklist"], collection_name)
     
     return f"El deck de {commander} ha sido creado"
 
@@ -169,19 +157,20 @@ def remove_cards(deck_id: int, card_list: list[str]):
     return f"Las cartas {results} han sido removidas"
 
 @tool
-def deck_info(deck_id: int):
+def deck_info(deck_id: int, prompt: str):
     """
     Consulta el deck actual.
     
     Args:
         deck_id (int): El ID del deck.
+        prompt (str): El prompt del usuario.
     
     Returns:
-        dict: El deck actual.
+        dict: El deck actual, el nombre del commander y el prompt del usuario.
     """
     response = requests.get(f"{API_BASE}/decks/{deck_id}", headers=_auth_headers())
     
-    return response.json()
+    return {"deck": response.json(), "commander": response.json()["deck_name"], "prompt": prompt}
 
 @tool
 def update_deck(deck_id:int, bracket: str):
@@ -235,19 +224,20 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
         custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck]
         all_tools = tools + custom_tools
  
-        nvidiaModel = ChatOllama(model="192.168.117.119:11434/gemma4:26b", reasoning=True, max_tokens=12000)
+        nvidiaModel = ChatOllama(model="gemma4:26b", base_url="http://192.168.117.119:11434", reasoning=True, max_tokens=12000)
     
         _agente = create_agent(
             model=nvidiaModel,
             tools=all_tools,
             checkpointer=_checkpointer,
-            system_prompt="Eres un asistente que llama a herramientas. " \
-            "Devuelve la salida en español si la tool devuelve la información en inglés." \
-            "Si el usuario no da la información de budget, asume que es budget." \
-            "La salida debe estar bonita y legible." \
-            "Si una tool suelta un error solo devuelve ese error, no intentes hacer nada si las tools no funcionan" \
-            "Si el usuario pide agregar o quitar 2 Plains por ejemplo, manda '2 Plains' (sin comillas), no una lista con 2 plains" \
-            "Si se pide bracket_info se manda en str la información de todos los brackets disponibles"
+            system_prompt="Eres un asistente especializado en Magic: The Gathering que ayuda a los usuarios a gestionar sus mazos Commander. " \
+            "Tu principal función es llamar a las herramientas disponibles para crear, modificar y consultar mazos." \
+            "IMPORTANTE: Responde SIEMPRE en español, sin importar el idioma de la respuesta de las herramientas." \
+            "Si el usuario no especifica presupuesto, asume que es 'budget'." \
+            "Sé claro, conciso y natural en tus respuestas." \
+            "Para agregar o quitar cartas, usa el formato 'cantidad nombre_carta' (ej: '2 Plains')." \
+            "No inventes información que no tengas y sé preciso con los datos." \
+            "Presenta la información de forma ordenada y fácil de leer." \
         )
     
         if thread_id is None:
@@ -276,6 +266,7 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
                 print(hayRazonamiento)
 
             print("\n=== MENSAJE ===")
+            print(prompt)
             if not isinstance(ultimo_mensaje, HumanMessage): # para que no me repita dos veces el msg del user
                         ultimo_mensaje.pretty_print()
 
