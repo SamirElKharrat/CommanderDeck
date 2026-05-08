@@ -125,7 +125,12 @@ function App() {
     logoutUser();
     setUser(null);
     setDecks([]);
-    setChatMessages([chatMessages[0]]); // Keep welcome message
+    setChatMessages([{
+      id: 'msg-welcome',
+      role: 'assistant',
+      content: '¡Hola! Soy tu asistente de **CommanderDeck**. Puedo ayudarte a:\n\n• **Crear mazos** — Dime el comandante y presupuesto\n• **Añadir cartas** — Dime qué cartas agregar y a qué mazo\n• **Quitar cartas** — Dime qué cartas remover\n• **Consultar tu mazo** — Pregúntame sobre un mazo\n• **Actualizar bracket** — Cambia el bracket de tu mazo\n\n¿En qué puedo ayudarte?',
+      timestamp: new Date().toISOString(),
+    }]); // Keep welcome message
   };
 
   const [creatingDeck, setCreatingDeck] = useState(false);
@@ -183,7 +188,7 @@ function App() {
       // Get current decks to compare later
       const currentDecks = [...decks];
 
-      // Send the command to the AI agent to create the deck via EDHRec
+      // Send command to AI agent to create deck via EDHRec
       const prompt = `Crea un mazo de Commander con el comandante "${values.commander}" con presupuesto ${values.budget || 'budget'}`;
       await handleSendMessage(prompt, true); // skip auto refresh here, we'll do it manually to find the new one
 
