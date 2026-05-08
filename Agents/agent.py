@@ -235,7 +235,7 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
         custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck]
         all_tools = tools + custom_tools
  
-        nvidiaModel = ChatOllama(model="gemma4:e2b", reasoning=True, max_tokens=12000)
+        nvidiaModel = ChatOllama(model="192.168.117.119:11434/gemma4:26b", reasoning=True, max_tokens=12000)
     
         _agente = create_agent(
             model=nvidiaModel,
