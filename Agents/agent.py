@@ -238,6 +238,7 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
             "Para agregar o quitar cartas, usa el formato 'cantidad nombre_carta' (ej: '2 Plains')." \
             "No inventes información que no tengas y sé preciso con los datos." \
             "Presenta la información de forma ordenada y fácil de leer." \
+            "Siempre que los comandantes que se pidan no existan o la herramienta de get_commander_deck no los encuentre, sugiere comandantes similares."
         )
     
         if thread_id is None:

@@ -340,7 +340,7 @@ function App() {
         onSubmit={handleCreateDeck}
         onRecommend={() => {
           setModalOpen(false);
-          handleSendMessage('Recomiéndame los 10 mejores comandantes de Commander para empezar');
+          handleSendMessage('Recomiendame comandantes para hacerme un mazo de Commander');
         }}
       />
     </div>
