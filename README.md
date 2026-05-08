@@ -169,11 +169,6 @@ npm install
 npm run dev
 ```
 
-### 7. Acceder a la Aplicación
-- **Frontend**: http://localhost:5173
-- **API Documentation**: http://localhost:8000/docs
-- **API**: http://localhost:8000/api
-
 ## 📁 Estructura del Proyecto
 
 ```
