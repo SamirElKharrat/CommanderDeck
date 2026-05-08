@@ -43,3 +43,34 @@
   font-size: 11px;
   color: #5d6080;
 }
+
+.create-deck-modal__loading-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(13, 15, 26, 0.8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  border-radius: 8px;
+  text-align: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.create-deck-modal__loading-overlay p {
+  color: #d4a537;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  margin-top: 16px;
+  margin-bottom: 4px;
+}
+
+.create-deck-modal__loading-overlay small {
+  color: #5d6080;
+  font-size: 12px;
+}

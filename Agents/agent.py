@@ -190,6 +190,28 @@ def update_deck(deck_id:int, bracket: str):
     }, headers=_auth_headers())
     
     return response.json()
+
+@tool
+def commander_check(commander_names: list[str]):
+    """
+    Comprueba si el commander existe.
+    
+    Args:
+        commander_name (str): El nombre del commander.
+    
+    Returns:
+        bool: True si el commander existe, False en caso contrario.
+    """
+    edhrec = EDHRec()
+    results = []
+    for commander_name in commander_names:
+        try:
+            card = edhrec.get_card_details(commander_name)
+            if "legendary creature" in card["type"].lower():
+                results.append(card["name"])
+        except:
+            continue
+    return results
     
 
 
@@ -221,7 +243,7 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
         # Nos descargamos las herramientas
         tools = await _client.get_tools()
     
-        custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck]
+        custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck, commander_check]
         all_tools = tools + custom_tools
  
         nvidiaModel = ChatOllama(model="gemma4:26b", base_url="http://192.168.117.119:11434", reasoning=True, max_tokens=12000)

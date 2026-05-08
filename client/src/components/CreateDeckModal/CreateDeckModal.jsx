@@ -1,4 +1,4 @@
-import { Modal, Form, Input, Select, Button } from 'antd';
+import { Modal, Form, Input, Select, Button, Spin } from 'antd';
 import { CrownOutlined } from '@ant-design/icons';
 import './CreateDeckModal.css';
 
@@ -88,8 +88,17 @@ export default function CreateDeckModal({ open, onClose, onSubmit, onRecommend, 
             size="large"
             options={BUDGET_OPTIONS}
             id="budget-select"
+            disabled={loading}
           />
         </Form.Item>
+
+        {loading && (
+          <div className="create-deck-modal__loading-overlay">
+            <Spin size="large" />
+            <p>Generando tu mazo de Commander...</p>
+            <small>Esto puede tardar unos segundos mientras consulto con EDHRec</small>
+          </div>
+        )}
       </Form>
     </Modal>
   );

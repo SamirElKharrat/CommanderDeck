@@ -190,7 +190,8 @@ function App() {
 
       // Send command to AI agent to create deck via EDHRec
       const prompt = `Crea un mazo de Commander con el comandante "${values.commander}" con presupuesto ${values.budget || 'budget'}`;
-      await handleSendMessage(prompt, true); // skip auto refresh here, we'll do it manually to find the new one
+      // Call API directly without updating visible chat state (silent prompt)
+      await sendChatMessage(prompt);
 
       // Refresh decks
       setDecksLoading(true);
@@ -340,7 +341,7 @@ function App() {
         onSubmit={handleCreateDeck}
         onRecommend={() => {
           setModalOpen(false);
-          handleSendMessage('Recomiendame comandantes para hacerme un mazo de Commander');
+          handleSendMessage('Recomiendame 10 comandantes y comprueba que sean reales usando la tool de commander_check. Solo enseña los que son reales');
         }}
       />
     </div>
