@@ -14,7 +14,7 @@ from langchain.tools import tool
 
 
 load_dotenv()
-SQLITE_PATH = os.path.join("C:\\Users\\coman\\Desktop\\CommanderDeck\\server", "commander_deck.db")
+SQLITE_PATH = os.path.join("E:\\CommanderDeck\\server", "commander_deck.db")
 API_BASE = "http://localhost:8000/api"
 
 # Token global que se establece antes de cada invocación del agente
@@ -192,26 +192,32 @@ def update_deck(deck_id:int, bracket: str):
     return response.json()
 
 @tool
-def commander_check(commander_names: list[str]):
+def cards_check(cards_names: list[str]):
     """
-    Comprueba si el commander existe.
+    Comprueba si las cartas existen.
     
     Args:
-        commander_name (str): El nombre del commander.
+        cards_names (list[str]): Los nombres de las cartas.
     
     Returns:
-        bool: True si el commander existe, False en caso contrario.
+        list(dict): Lista de diccionarios con el nombre y los detalles de las cartas.
     """
     edhrec = EDHRec()
-    results = []
-    for commander_name in commander_names:
+    json_cards_list = []
+    for card_detail in cards_names:
         try:
-            card = edhrec.get_card_details(commander_name)
-            if "legendary creature" in card["type"].lower():
-                results.append(card["name"])
+            card_detail = edhrec.get_card_details(card_detail)
+            json_cards_list.append({
+            "name": card_detail.get("name", ""),
+            "details": card_detail.get("oracle_text", ""),
+            "type": card_detail.get("type", ""),
+            "mana_cost": card_detail.get("mana_cost", ""),
+            "version": card_detail.get("unique_artwork", [{}])[0].get("image_uris", [""])[0]
+        })
         except:
             continue
-    return results
+
+    return json_cards_list
     
 
 
@@ -243,10 +249,10 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
         # Nos descargamos las herramientas
         tools = await _client.get_tools()
     
-        custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck, commander_check]
+        custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck, cards_check]
         all_tools = tools + custom_tools
  
-        nvidiaModel = ChatOllama(model="gemma4:26b", base_url="http://192.168.117.119:11434", reasoning=True, max_tokens=12000)
+        nvidiaModel = ChatOllama(model="gemma4:e4b", reasoning=True, max_tokens=100000)
     
         _agente = create_agent(
             model=nvidiaModel,
@@ -260,7 +266,7 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
             "Para agregar o quitar cartas, usa el formato 'cantidad nombre_carta' (ej: '2 Plains')." \
             "No inventes información que no tengas y sé preciso con los datos." \
             "Presenta la información de forma ordenada y fácil de leer." \
-            "Siempre que los comandantes que se pidan no existan o la herramienta de get_commander_deck no los encuentre, sugiere comandantes similares."
+            "Siempre que se pidan cartas sea para ver, cambiar o añadir, comprueba si son reales con cards_check"
         )
     
         if thread_id is None:

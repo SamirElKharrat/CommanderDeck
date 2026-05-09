@@ -24,17 +24,20 @@ function App() {
   const [modalOpen, setModalOpen] = useState(false);
 
   // Global Chat State
-  const [chatMessages, setChatMessages] = useState([
-    {
-      id: 'msg-welcome',
-      role: 'assistant',
-      content: '¡Hola! Soy tu asistente de **CommanderDeck**. Puedo ayudarte a:\n\n• **Crear mazos** — Dime el comandante y presupuesto\n• **Añadir cartas** — Dime qué cartas agregar y a qué mazo\n• **Quitar cartas** — Dime qué cartas remover\n• **Consultar tu mazo** — Pregúntame sobre un mazo\n• **Actualizar bracket** — Cambia el bracket de tu mazo\n\n¿En qué puedo ayudarte?',
-      timestamp: new Date().toISOString(),
-    },
-  ]);
+  const WELCOME_MSG = {
+    id: 'msg-welcome',
+    role: 'assistant',
+    content: '¡Hola! Soy tu asistente de **CommanderDeck**. Puedo ayudarte a:\n\n• **Crear mazos** — Dime el comandante y presupuesto\n• **Añadir cartas** — Dime qué cartas agregar y a qué mazo\n• **Quitar cartas** — Dime qué cartas remover\n• **Consultar tu mazo** — Pregúntame sobre un mazo\n• **Actualizar bracket** — Cambia el bracket de tu mazo\n\n¿En qué puedo ayudarte?',
+    timestamp: new Date().toISOString(),
+  };
+
+  const [chatHistories, setChatHistories] = useState({ main: [WELCOME_MSG] });
   const [isChatTyping, setIsChatTyping] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(true);
   const [activeDeckId, setActiveDeckId] = useState(null);
+
+  const currentChatKey = activeDeckId ? `deck-${activeDeckId}` : 'main';
+  const chatMessages = chatHistories[currentChatKey] || [WELCOME_MSG];
 
   // ── Auth check on mount ──
   useEffect(() => {
@@ -125,12 +128,7 @@ function App() {
     logoutUser();
     setUser(null);
     setDecks([]);
-    setChatMessages([{
-      id: 'msg-welcome',
-      role: 'assistant',
-      content: '¡Hola! Soy tu asistente de **CommanderDeck**. Puedo ayudarte a:\n\n• **Crear mazos** — Dime el comandante y presupuesto\n• **Añadir cartas** — Dime qué cartas agregar y a qué mazo\n• **Quitar cartas** — Dime qué cartas remover\n• **Consultar tu mazo** — Pregúntame sobre un mazo\n• **Actualizar bracket** — Cambia el bracket de tu mazo\n\n¿En qué puedo ayudarte?',
-      timestamp: new Date().toISOString(),
-    }]); // Keep welcome message
+    setChatHistories({ main: [WELCOME_MSG] });
   };
 
   const [creatingDeck, setCreatingDeck] = useState(false);
@@ -147,7 +145,10 @@ function App() {
       content: trimmed,
       timestamp: new Date().toISOString(),
     };
-    setChatMessages((prev) => [...prev, userMsg]);
+    setChatHistories((prev) => ({
+      ...prev,
+      [currentChatKey]: [...(prev[currentChatKey] || [WELCOME_MSG]), userMsg]
+    }));
     setIsChatTyping(true);
     setIsChatOpen(true);
 
@@ -160,7 +161,10 @@ function App() {
         content: result.response,
         timestamp: new Date().toISOString(),
       };
-      setChatMessages((prev) => [...prev, assistantMsg]);
+      setChatHistories((prev) => ({
+        ...prev,
+        [currentChatKey]: [...(prev[currentChatKey] || [WELCOME_MSG]), assistantMsg]
+      }));
 
       // Refresh decks after any chat action (agent may have created/modified decks)
       if (!skipRefresh) {
@@ -174,7 +178,10 @@ function App() {
         content: `⚠️ Error: ${err.message}`,
         timestamp: new Date().toISOString(),
       };
-      setChatMessages((prev) => [...prev, errorMsg]);
+      setChatHistories((prev) => ({
+        ...prev,
+        [currentChatKey]: [...(prev[currentChatKey] || [WELCOME_MSG]), errorMsg]
+      }));
       throw err;
     } finally {
       setIsChatTyping(false);
@@ -339,10 +346,6 @@ function App() {
         loading={creatingDeck}
         onClose={() => setModalOpen(false)}
         onSubmit={handleCreateDeck}
-        onRecommend={() => {
-          setModalOpen(false);
-          handleSendMessage('Recomiendame 10 comandantes y comprueba que sean reales usando la tool de commander_check. Solo enseña los que son reales');
-        }}
       />
     </div>
   );
