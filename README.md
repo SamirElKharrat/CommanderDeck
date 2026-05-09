@@ -197,23 +197,3 @@ CommanderDeck/
 └── .env                  # Variables de entorno
 ```
 
-## 🎮 Características Principales
-
-### Gestión de Mazos
-- Creación de mazos Commander desde cero
-- Importación de mazos promedio de EDHRec
-- Edición intuitiva con drag & drop
-- Validación automática de reglas Commander
-
-### Asistente IA
-- Conversación natural
-- Recomendaciones personalizadas
-- Análisis de sinergias entre cartas
-- Optimización por presupuesto
-
-### Interfaz Usuario
-- Diseño moderno con Ant Design
-- Responsive para móviles y desktop
-- Navegación intuitiva
-- Visualización de cartas con imágenes
-
