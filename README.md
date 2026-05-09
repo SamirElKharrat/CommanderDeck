@@ -29,6 +29,7 @@ El sistema incorpora un agente de IA avanzado que funciona como asistente person
 3. **`remove_cards`**: Elimina cartas de mazos con gestión de cantidades
 4. **`deck_info`**: Consulta información detallada de mazos
 5. **`update_deck`**: Actualiza metadatos del mazo (bracket/presupuesto)
+6. **`cards_check`**: Comprueba si las cartas son reales o la ia se las ha inventado
 
 ## 🏗️ Arquitectura General
 
