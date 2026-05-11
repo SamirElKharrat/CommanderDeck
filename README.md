@@ -29,6 +29,7 @@ El sistema incorpora un agente de IA avanzado que funciona como asistente person
 3. **`remove_cards`**: Elimina cartas de mazos con gestión de cantidades
 4. **`deck_info`**: Consulta información detallada de mazos
 5. **`update_deck`**: Actualiza metadatos del mazo (bracket/presupuesto)
+6. **`cards_check`**: Comprueba si las cartas son reales o la ia se las ha inventado
 
 ## 🏗️ Arquitectura General
 
@@ -195,24 +196,4 @@ CommanderDeck/
 ├── package.json          # Metadatos del proyecto
 └── .env                  # Variables de entorno
 ```
-
-## 🎮 Características Principales
-
-### Gestión de Mazos
-- Creación de mazos Commander desde cero
-- Importación de mazos promedio de EDHRec
-- Edición intuitiva con drag & drop
-- Validación automática de reglas Commander
-
-### Asistente IA
-- Conversación natural
-- Recomendaciones personalizadas
-- Análisis de sinergias entre cartas
-- Optimización por presupuesto
-
-### Interfaz Usuario
-- Diseño moderno con Ant Design
-- Responsive para móviles y desktop
-- Navegación intuitiva
-- Visualización de cartas con imágenes
 
