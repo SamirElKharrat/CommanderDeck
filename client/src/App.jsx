@@ -222,7 +222,7 @@ function App() {
 
         return {
           id: deck.id,
-          name: `${commanderName} Deck`,
+          name: commanderName,
           commander: commanderName,
           commanderImage: `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(commanderName)}&format=image&version=art_crop`,
           bracket: deck.bracket || '2',

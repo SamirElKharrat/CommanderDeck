@@ -1,14 +1,19 @@
 import { Button, Tooltip } from 'antd';
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import DeleteConfirm from '../DeleteConfirm/DeleteConfirm';
 import './DeckCard.css';
 
-export default function DeckCard({ deck, onDelete }) {
+export default function DeckCard({ deck, onDelete, onExport }) {
   const navigate = useNavigate();
 
   const handleCardClick = () => {
     navigate(`/deck/${deck.id}`);
+  };
+
+  const handleExportClick = (e) => {
+    e.stopPropagation();
+    if (onExport) onExport(deck);
   };
 
   return (
@@ -46,7 +51,17 @@ export default function DeckCard({ deck, onDelete }) {
           <span className="deck-card__card-count">{deck.cardCount} cartas</span>
         </div>
 
-        <div className="deck-card__delete-btn">
+        <div className="deck-card__actions">
+          <Tooltip title="Exportar como Texto">
+            <Button
+              type="text"
+              icon={<FileTextOutlined />}
+              onClick={handleExportClick}
+              className="deck-card__export-btn"
+              id={`export-deck-${deck.id}`}
+            />
+          </Tooltip>
+
           <DeleteConfirm onConfirm={() => onDelete(deck.id)}>
             <Button
               type="text"

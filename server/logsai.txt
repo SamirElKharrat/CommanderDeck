@@ -1,0 +1,88 @@
+[2026-05-11 12:07:08] USER PROMPT (thread=user_1_deck_14, deck=14): [Contexto Deck ID: 14] Genera una lista de texto de todas las cartas del mazo "Niv-Mizzet, the Firemind Deck" con el formato exacto "(cantidadx nombrecarta)", por ejemplo: "1x Sol Ring". Pon cada carta en una línea nueva. Solo devuelve la lista de cartas, sin introducciones ni despedidas ni explicaciones.
+[2026-05-11 12:07:22] AI RESPONSE: 1x Niv-Mizzet, the Firemind
+1x An Offer You Can't Refuse
+1x Arcane Denial
+1x Arcane Signet
+1x Baral, Chief of Compliance
+1x Blasphemous Act
+1x Brainstorm
+1x Cascade Bluffs
+1x Chaos Warp
+1x Command Tower
+1x Counterspell
+1x Curiosity
+1x Cyclonic Rift
+1x Deflecting Swat
+1x Faithless Looting
+1x Fellwar Stone
+1x Fiery Islet
+1x Frantic Search
+1x Gitaxian Probe
+1x Goblin Electromancer
+9x Island
+1x Izzet Boilerworks
+1x Izzet Signet
+1x Jace's Archivist
+1x Lightning Greaves
+1x Minamo, School at Water's Edge
+1x Mind Stone
+7x Mountain
+1x Mystic Remora
+1x Negate
+1x Niv-Mizzet, Parun
+1x Niv-Mizzet, Visionary
+1x Ophidian Eye
+1x Opt
+1x Ponder
+1x Pongify
+1x Preordain
+1x Propaganda
+1x Psychosis Crawler
+1x Reliquary Tower
+1x Rhystic Study
+1x Riverglide Pathway
+1x Riverpyre Verge
+1x Sapphire Medallion
+1x Sensei's Divining Top
+1x Shivan Reef
+1x Snapcaster Mage
+1x Sol Ring
+1x Steam Vents
+1x Stormcarved Coast
+1x Sulfur Falls
+1x Swan Song
+1x Swiftfoot Boots
+1x Talisman of Creativity
+1x Tandem Lookout
+1x Teferi's Ageless Insight
+1x The Locust God
+1x Thought Vessel
+1x Thundering Falls
+1x Training Center
+1x Vandalblast
+1x Vivi Ornitier
+1x Whirlpool Warrior
+1x Windfall
+1x Lightning Bolt
+1x Abrade
+1x Izzet Charm
+1x Electrostatic Field
+1x Guttersnipe
+1x Young Pyromancer
+1x Galvanic Iteration
+1x Double Vision
+1x Saheeli, Sublime Artificer
+1x Ral, Storm Conduit
+1x Chasm Skulker
+1x Niv-Mizzet, Guildpact
+1x Myriad Landscape
+1x Terramorphic Expanse
+1x Evolving Wilds
+1x Temple of Epiphany
+1x Temple of the False God
+1x Worn Powerstone
+1x Hedron Archive
+1x Commander's Sphere
+1x Thousand-Year Storm
+1x Mizzix's Mastery
+[2026-05-11 12:07:22] --------------------------------------------------

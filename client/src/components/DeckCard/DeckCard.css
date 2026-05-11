@@ -105,14 +105,29 @@
   color: #5d6080;
 }
 
-.deck-card__delete-btn {
+.deck-card__actions {
   position: absolute;
   top: 12px;
   right: 12px;
+  display: flex;
+  gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
+  background: rgba(19, 21, 42, 0.8);
+  backdrop-filter: blur(4px);
+  padding: 2px;
+  border-radius: 8px;
+  border: 1px solid rgba(42, 45, 74, 0.5);
 }
 
-.deck-card:hover .deck-card__delete-btn {
+.deck-card:hover .deck-card__actions {
   opacity: 1;
+}
+
+.deck-card__export-btn {
+  color: #d4a537 !important;
+}
+
+.deck-card__export-btn:hover {
+  background: rgba(212, 165, 55, 0.1) !important;
 }

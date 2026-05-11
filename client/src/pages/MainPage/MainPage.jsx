@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { Button, Drawer, Spin } from 'antd';
 import { MessageOutlined, LoadingOutlined } from '@ant-design/icons';
 import DeckGrid from '../../components/DeckGrid/DeckGrid';
 import ChatAssistant from '../../components/ChatAssistant/ChatAssistant';
+import ExportDeckModal from '../../components/ExportDeckModal/ExportDeckModal';
 import './MainPage.css';
 
 export default function MainPage({ 
@@ -14,6 +16,14 @@ export default function MainPage({
   isChatOpen,
   setIsChatOpen
 }) {
+  const [exportModalVisible, setExportModalVisible] = useState(false);
+  const [selectedDeck, setSelectedDeck] = useState(null);
+
+  const handleExport = (deck) => {
+    setSelectedDeck(deck);
+    setExportModalVisible(true);
+  };
+
   return (
     <div className="main-page" id="main-page">
       <div className="main-page__content">
@@ -23,9 +33,22 @@ export default function MainPage({
             <p style={{ color: '#5d6080', marginTop: 16 }}>Cargando tus mazos...</p>
           </div>
         ) : (
-          <DeckGrid decks={decks || []} onDelete={onDeleteDeck} />
+          <DeckGrid 
+            decks={decks || []} 
+            onDelete={onDeleteDeck} 
+            onExport={handleExport}
+          />
         )}
       </div>
+
+      <ExportDeckModal
+        visible={exportModalVisible}
+        deck={selectedDeck}
+        onCancel={() => {
+          setExportModalVisible(false);
+          setSelectedDeck(null);
+        }}
+      />
 
       {/* Desktop chat sidebar */}
       <div className={`main-page__chat-panel ${!isChatOpen ? 'main-page__chat-panel--closed' : ''}`}>

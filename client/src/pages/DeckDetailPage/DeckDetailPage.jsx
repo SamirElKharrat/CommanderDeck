@@ -1,12 +1,10 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Input, Divider, Drawer, Tooltip, message } from 'antd';
-import {
-  ArrowLeftOutlined,
-  MessageOutlined,
-} from '@ant-design/icons';
+import { ArrowLeftOutlined, MessageOutlined, FileTextOutlined } from '@ant-design/icons';
 import ChatAssistant from '../../components/ChatAssistant/ChatAssistant';
 import CardList from '../../components/CardList/CardList';
+import ExportDeckModal from '../../components/ExportDeckModal/ExportDeckModal';
 import { updateDeck as apiUpdateDeck, removeCardFromDeck } from '../../api/decks';
 import './DeckDetailPage.css';
 
@@ -28,8 +26,9 @@ export default function DeckDetailPage({
 
   const [editName, setEditName] = useState(deck?.name || '');
   const [localCards, setLocalCards] = useState(deck?.cards || []);
+  const [exportModalVisible, setExportModalVisible] = useState(false);
 
-  // Set the active deck id for chat context
+  // ... (useEffect and other functions remain the same until return)
   useEffect(() => {
     if (id && setActiveDeckId) {
       setActiveDeckId(parseInt(id));
@@ -39,7 +38,6 @@ export default function DeckDetailPage({
     };
   }, [id, setActiveDeckId]);
 
-  // Update local state when deck data changes (e.g., after chat action refreshes decks)
   useEffect(() => {
     if (deck) {
       setEditName(deck.name);
@@ -62,7 +60,6 @@ export default function DeckDetailPage({
       try {
         await removeCardFromDeck(deck.id, card.name, quantity);
         message.success(`${quantity}x ${card.name} quitado`);
-        // Refresh decks to sync state
         if (onRefreshDecks) await onRefreshDecks();
       } catch (err) {
         message.error('Error al quitar carta: ' + err.message);
@@ -128,6 +125,16 @@ export default function DeckDetailPage({
               <span className="deck-detail__card-count">
                 {localCards.length} cartas ({localCards.reduce((sum, c) => sum + (c.quantity || 1), 0)} total)
               </span>
+
+              <Tooltip title="Exportar como Texto">
+                <Button 
+                  icon={<FileTextOutlined />} 
+                  onClick={() => setExportModalVisible(true)}
+                  className="deck-detail__export-btn"
+                >
+                  Exportar
+                </Button>
+              </Tooltip>
             </div>
 
             <div className="deck-detail__chat-hint">
@@ -135,6 +142,12 @@ export default function DeckDetailPage({
             </div>
           </div>
         </div>
+
+        <ExportDeckModal
+          visible={exportModalVisible}
+          deck={deck}
+          onCancel={() => setExportModalVisible(false)}
+        />
 
         <Divider className="deck-detail__divider" />
 

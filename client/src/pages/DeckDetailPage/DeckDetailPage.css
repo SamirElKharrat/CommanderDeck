@@ -148,6 +148,17 @@
   color: #8b8fa6;
 }
 
+.deck-detail__export-btn {
+  background: #1a1d35 !important;
+  border-color: #2a2d4a !important;
+  color: #d4a537 !important;
+}
+
+.deck-detail__export-btn:hover {
+  background: #232742 !important;
+  border-color: #d4a537 !important;
+}
+
 @media (max-width: 992px) {
   .deck-detail__chat-panel {
     display: none;

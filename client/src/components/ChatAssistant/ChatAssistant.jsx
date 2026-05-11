@@ -14,13 +14,26 @@ export default function ChatAssistant({
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToBottom = (instant = false) => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ 
+        behavior: instant ? 'auto' : 'smooth',
+        block: 'end'
+      });
+    }
   };
 
   useEffect(() => {
     scrollToBottom();
   }, [messages, isTyping]);
+
+  useEffect(() => {
+    // Force scroll to bottom on mount
+    const timer = setTimeout(() => {
+      scrollToBottom(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleSend = () => {
     if (!inputValue.trim() || !onSendMessage) return;

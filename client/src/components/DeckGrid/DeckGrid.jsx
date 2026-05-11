@@ -2,7 +2,7 @@ import { InboxOutlined } from '@ant-design/icons';
 import DeckCard from '../DeckCard/DeckCard';
 import './DeckGrid.css';
 
-export default function DeckGrid({ decks, onDelete }) {
+export default function DeckGrid({ decks, onDelete, onExport }) {
   return (
     <div className="deck-grid" id="deck-grid">
       <h2 className="deck-grid__title">Mis Mazos</h2>
@@ -17,7 +17,7 @@ export default function DeckGrid({ decks, onDelete }) {
           </div>
         ) : (
           decks.length > 0 ? decks.map((deck) => (
-            <DeckCard key={deck.id} deck={deck} onDelete={onDelete} />
+            <DeckCard key={deck.id} deck={deck} onDelete={onDelete} onExport={onExport} />
           )) : null
         )}
       </div>
