@@ -8,13 +8,13 @@ from dotenv import load_dotenv
 from langchain_mcp_adapters.client import MultiServerMCPClient
 from langchain.agents import create_agent
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.messages import HumanMessage
 from pyedhrec import EDHRec
 from langchain.tools import tool
 
 load_dotenv()
-SQLITE_PATH = os.path.join("E:\\CommanderDeck\\server", "commander_deck.db")
+SQLITE_PATH = os.path.join("C:\\Users\\coman\\Desktop\\CommanderDeck\\server", "commander_deck.db")
 API_BASE = "http://localhost:8000/api"
 
 # Token global que se establece antes de cada invocación del agente
@@ -172,7 +172,7 @@ def deck_info(deck_id: int, prompt: str):
     """
     response = requests.get(f"{API_BASE}/decks/{deck_id}", headers=_auth_headers())
     
-    return {"deck": response.json(), "commander": response.json()["deck_name"], "prompt": prompt}
+    return {"deck": response.json(), "prompt": prompt}
 
 @tool
 def update_deck(deck_id:int, bracket: str):
@@ -194,19 +194,19 @@ def update_deck(deck_id:int, bracket: str):
     return response.json()
 
 @tool
-def cards_check(cards_names: list[str]):
+def cards_check(card_names: list[str]):
     """
     Comprueba si las cartas existen.
-    
+
     Args:
-        cards_names (list[str]): Los nombres de las cartas.
-    
+        card_names (list[str]): Los nombres de las cartas.
+
     Returns:
         list(dict): Lista de diccionarios con el nombre y los detalles de las cartas.
     """
     edhrec = EDHRec()
     json_cards_list = []
-    for card_detail in cards_names:
+    for card_detail in card_names:
         try:
             card_detail = edhrec.get_card_details(card_detail)
             json_cards_list.append({
@@ -252,12 +252,12 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
         custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck, cards_check]
         all_tools = tools + custom_tools
  
-        nvidiaModel = ChatNVIDIA(
-            model="moonshotai/kimi-k2.6",
-            api_key=os.getenv("NVIDIA_API_KEY"),
+        nvidiaModel = ChatGoogleGenerativeAI(
+            model="gemini-3-flash-preview",
+            api_key="",
             temperature=1,
             top_p=1,
-            max_completion_tokens=16384,
+            max_output_tokens=16384,
         )
     
         _agente = create_agent(
@@ -283,6 +283,8 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
                 "Para añadir o quitar cartas usa el formato: 'cantidad nombre_carta'.\n\n"
                 "PRESUPUESTO\n"
                 "Si el usuario no indica presupuesto, asume siempre 'budget'.\n\n"
+                "NO LLAMAR\n"
+                "No llames nunca a mtg-commander-deck, no existem si fueras a crear un deck usa get_commander_deck. \n\n"
                 "PRESENTACION DE RESULTADOS\n"
                 "- Organiza las listas de cartas por categoría.\n"
                 "- Usa listas con guiones.\n"
@@ -326,8 +328,25 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
         # Log de respuesta final
         log_to_file(f"AI RESPONSE: {ultimo_mensaje.content}")
         log_to_file("-" * 50)
-        
-        return ultimo_mensaje.content
+
+        # Handle Gemini response format (list of objects)
+        content = ultimo_mensaje.content
+        if isinstance(content, list):
+            # Extract text from Gemini's structured response
+            text_parts = []
+            for item in content:
+                if isinstance(item, dict):
+                    if 'text' in item:
+                        text_parts.append(item['text'])
+                    elif 'content' in item:
+                        text_parts.append(item['content'])
+                elif isinstance(item, str):
+                    text_parts.append(item)
+            content = ' '.join(text_parts)
+        elif not isinstance(content, str):
+            content = str(content)
+
+        return content
 
 async def main():
     while (prompt := input("> ")) != "end":

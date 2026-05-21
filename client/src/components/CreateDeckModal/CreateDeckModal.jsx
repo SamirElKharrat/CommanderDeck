@@ -39,6 +39,8 @@ export default function CreateDeckModal({ open, onClose, onSubmit, loading }) {
       if (text.startsWith('```json')) text = text.replace(/```json/g, '').replace(/```/g, '').trim();
       else if (text.startsWith('```')) text = text.replace(/```/g, '').trim();
 
+      console.log(text);
+
       let data = JSON.parse(text);
       if (!Array.isArray(data)) {
         data = data.comandantes || data.commanders || Object.values(data)[0] || [];
