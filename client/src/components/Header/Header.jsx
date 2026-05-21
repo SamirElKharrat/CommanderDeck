@@ -58,6 +58,7 @@ export default function Header({ user, onCreateDeck, isChatOpen, onToggleChat, o
             onClick={onToggleChat}
             className={`app-header__chat-toggle ${isChatOpen ? 'active' : ''}`}
             style={{ color: isChatOpen ? '#c4952a' : '#b8a88a', fontSize: '20px' }}
+            id="chat-toggle-btn"
           />
         </Tooltip>
         

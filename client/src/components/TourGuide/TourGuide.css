@@ -1,0 +1,62 @@
+/* TourGuide.css */
+.shepherd-has-title .shepherd-content .shepherd-header {
+  background-color: #1a1710;
+  border-bottom: 1px solid rgba(196, 149, 42, 0.2);
+}
+
+.shepherd-title {
+  color: #c4952a;
+  font-family: 'Cinzel', serif;
+}
+
+.shepherd-text {
+  color: #e8dcc4;
+  background-color: #12100d;
+  font-family: 'Inter', sans-serif;
+  line-height: 1.5;
+}
+
+.shepherd-footer {
+  background-color: #12100d;
+  border-top: 1px solid rgba(196, 149, 42, 0.2);
+}
+
+.shepherd-button-primary {
+  background: #c4952a !important;
+  color: #12100d !important;
+  font-weight: 600 !important;
+  border: none !important;
+}
+
+.shepherd-button-primary:hover {
+  background: #d4a537 !important;
+}
+
+.shepherd-button-secondary {
+  background: rgba(26, 23, 16, 0.8) !important;
+  color: #c4952a !important;
+  border: 1px solid rgba(196, 149, 42, 0.4) !important;
+}
+
+.shepherd-button-secondary:hover {
+  background: rgba(196, 149, 42, 0.1) !important;
+}
+
+.shepherd-arrow::before {
+  background-color: #1a1710 !important;
+}
+
+.shepherd-element {
+  background: #12100d;
+  border: 1px solid rgba(196, 149, 42, 0.4);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  border-radius: 8px;
+}
+
+/* Ensure Shepherd is above Ant Design */
+.shepherd-element {
+  z-index: 10000;
+}
+.shepherd-modal-overlay-container {
+  z-index: 9999;
+}

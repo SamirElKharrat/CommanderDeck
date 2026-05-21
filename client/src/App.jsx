@@ -11,6 +11,7 @@ import { fetchDecks, deleteDeck as apiDeleteDeck, toggleDeckVisibility, copyDeck
 import { sendChatMessage } from './api/chat';
 import MyDecksPage from './pages/MyDecksPage/MyDecksPage';
 import CopyDeckModal from './components/CopyDeckModal/CopyDeckModal';
+import TourGuide from './components/TourGuide/TourGuide';
 import './App.css';
 
 function App() {
@@ -39,7 +40,7 @@ function App() {
 
   const [chatHistories, setChatHistories] = useState({ main: [WELCOME_MSG] });
   const [isChatTyping, setIsChatTyping] = useState(false);
-  const [isChatOpen, setIsChatOpen] = useState(true);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeDeckId, setActiveDeckId] = useState(null);
 
   const currentChatKey = activeDeckId ? `deck-${activeDeckId}` : 'main';
@@ -293,86 +294,88 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <Header
-        user={user}
-        onCreateDeck={() => setModalOpen(true)}
-        isChatOpen={isChatOpen}
-        onToggleChat={() => setIsChatOpen(!isChatOpen)}
-        onLogout={handleLogout}
-      />
+    <TourGuide isReady={user && authChecked}>
+      <div className="app-shell">
+        <Header
+          user={user}
+          onCreateDeck={() => setModalOpen(true)}
+          isChatOpen={isChatOpen}
+          onToggleChat={() => setIsChatOpen(!isChatOpen)}
+          onLogout={handleLogout}
+        />
 
-      <div className="app-content">
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <MainPage
-                chatMessages={chatMessages}
-                isChatTyping={isChatTyping}
-                onSendMessage={handleSendMessage}
-                isChatOpen={isChatOpen}
-                setIsChatOpen={setIsChatOpen}
-                onCopy={openCopyModal}
-              />
-            }
-          />
-          <Route
-            path="/my-decks"
-            element={
-              <MyDecksPage
-                decks={decks}
-                decksLoading={decksLoading}
-                onDeleteDeck={handleDeleteDeck}
-                chatMessages={chatMessages}
-                isChatTyping={isChatTyping}
-                onSendMessage={handleSendMessage}
-                isChatOpen={isChatOpen}
-                setIsChatOpen={setIsChatOpen}
-                onToggleVisibility={handleToggleVisibility}
-                onCopy={openCopyModal}
-              />
-            }
-          />
-          <Route
-            path="/deck/:id"
-            element={
-              <DeckDetailPage
-                user={user}
-                decks={decks}
-                onUpdateDeck={handleUpdateDeck}
-                chatMessages={chatMessages}
-                isChatTyping={isChatTyping}
-                onSendMessage={handleSendMessage}
-                isChatOpen={isChatOpen}
-                setIsChatOpen={setIsChatOpen}
-                setActiveDeckId={setActiveDeckId}
-                onRefreshDecks={loadDecks}
-                onCopy={openCopyModal}
-              />
-            }
-          />
-        </Routes>
+        <div className="app-content">
+          <Routes>
+            <Route
+              path="/"
+              element={
+                <MainPage
+                  chatMessages={chatMessages}
+                  isChatTyping={isChatTyping}
+                  onSendMessage={handleSendMessage}
+                  isChatOpen={isChatOpen}
+                  setIsChatOpen={setIsChatOpen}
+                  onCopy={openCopyModal}
+                />
+              }
+            />
+            <Route
+              path="/my-decks"
+              element={
+                <MyDecksPage
+                  decks={decks}
+                  decksLoading={decksLoading}
+                  onDeleteDeck={handleDeleteDeck}
+                  chatMessages={chatMessages}
+                  isChatTyping={isChatTyping}
+                  onSendMessage={handleSendMessage}
+                  isChatOpen={isChatOpen}
+                  setIsChatOpen={setIsChatOpen}
+                  onToggleVisibility={handleToggleVisibility}
+                  onCopy={openCopyModal}
+                />
+              }
+            />
+            <Route
+              path="/deck/:id"
+              element={
+                <DeckDetailPage
+                  user={user}
+                  decks={decks}
+                  onUpdateDeck={handleUpdateDeck}
+                  chatMessages={chatMessages}
+                  isChatTyping={isChatTyping}
+                  onSendMessage={handleSendMessage}
+                  isChatOpen={isChatOpen}
+                  setIsChatOpen={setIsChatOpen}
+                  setActiveDeckId={setActiveDeckId}
+                  onRefreshDecks={loadDecks}
+                  onCopy={openCopyModal}
+                />
+              }
+            />
+          </Routes>
+        </div>
+
+        <CreateDeckModal
+          open={modalOpen}
+          loading={creatingDeck}
+          onClose={() => setModalOpen(false)}
+          onSubmit={handleCreateDeck}
+        />
+
+        <CopyDeckModal
+          visible={copyModalOpen}
+          deck={deckToCopy}
+          loading={copyingDeck}
+          onCancel={() => {
+            setCopyModalOpen(false);
+            setDeckToCopy(null);
+          }}
+          onCopy={submitCopyDeck}
+        />
       </div>
-
-      <CreateDeckModal
-        open={modalOpen}
-        loading={creatingDeck}
-        onClose={() => setModalOpen(false)}
-        onSubmit={handleCreateDeck}
-      />
-
-      <CopyDeckModal
-        visible={copyModalOpen}
-        deck={deckToCopy}
-        loading={copyingDeck}
-        onCancel={() => {
-          setCopyModalOpen(false);
-          setDeckToCopy(null);
-        }}
-        onCopy={submitCopyDeck}
-      />
-    </div>
+    </TourGuide>
   );
 }
 
