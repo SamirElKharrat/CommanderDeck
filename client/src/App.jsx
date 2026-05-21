@@ -7,8 +7,10 @@ import MainPage from './pages/MainPage/MainPage';
 import DeckDetailPage from './pages/DeckDetailPage/DeckDetailPage';
 import AuthPage from './pages/AuthPage/AuthPage';
 import { isAuthenticated, fetchCurrentUser, logoutUser } from './api/auth';
-import { fetchDecks, deleteDeck as apiDeleteDeck } from './api/decks';
+import { fetchDecks, deleteDeck as apiDeleteDeck, toggleDeckVisibility, copyDeck } from './api/decks';
 import { sendChatMessage } from './api/chat';
+import MyDecksPage from './pages/MyDecksPage/MyDecksPage';
+import CopyDeckModal from './components/CopyDeckModal/CopyDeckModal';
 import './App.css';
 
 function App() {
@@ -22,6 +24,10 @@ function App() {
 
   // Modal state
   const [modalOpen, setModalOpen] = useState(false);
+  
+  const [copyModalOpen, setCopyModalOpen] = useState(false);
+  const [deckToCopy, setDeckToCopy] = useState(null);
+  const [copyingDeck, setCopyingDeck] = useState(false);
 
   // Global Chat State
   const WELCOME_MSG = {
@@ -61,13 +67,10 @@ function App() {
     setDecksLoading(true);
     try {
       const data = await fetchDecks();
-      // Transform API data to match component expectations
       const transformed = await Promise.all(data.map(async (deck) => {
         const cards = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
         const commanderName = (deck.deck_name || "").trim();
 
-        // Fetch commander data for colors if not cached or available
-        // Note: In a real app we'd cache this or store it in DB
         let colors = ['W'];
         try {
           const scryRes = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(commanderName)}`);
@@ -81,12 +84,14 @@ function App() {
 
         return {
           id: deck.id,
-          name: `${commanderName} Deck`,
+          name: deck.deck_name,
           commander: commanderName,
           commanderImage: `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(commanderName)}&format=image&version=art_crop`,
           bracket: deck.bracket || '2',
           type: deck.type,
           partner: deck.partner,
+          is_public: deck.is_public === 1,
+          owner_username: deck.owner_username,
           cardCount: cards.reduce((sum, c) => sum + (parseInt(c.quantity) || 1), 0),
           cards: cards.map((c, idx) => ({
             id: `card-${deck.id}-${idx}`,
@@ -166,7 +171,6 @@ function App() {
         [currentChatKey]: [...(prev[currentChatKey] || [WELCOME_MSG]), assistantMsg]
       }));
 
-      // Refresh decks after any chat action (agent may have created/modified decks)
       if (!skipRefresh) {
         await loadDecks();
       }
@@ -192,72 +196,26 @@ function App() {
   const handleCreateDeck = async (values) => {
     setCreatingDeck(true);
     try {
-      // Get current decks to compare later
       const currentDecks = [...decks];
 
-      // Send command to AI agent to create deck via EDHRec
-      const prompt = `Crea un mazo de Commander con el comandante "${values.commander}" con presupuesto ${values.budget || 'budget'}`;
-      // Call API directly without updating visible chat state (silent prompt)
+      // Send command to AI agent
+      // Note: we can map values.isExperimental to the new mtg-commander-deck tool if checked
+      let prompt = '';
+      if (values.isExperimental) {
+        prompt = `Crea un mazo experimental usando mtg-commander-deck con el comandante "${values.commander}" en el bracket ${values.bracket || '2'}`;
+      } else {
+        prompt = `Crea un mazo de Commander con el comandante "${values.commander}" con presupuesto ${values.budget || 'budget'}`;
+      }
+      
       await sendChatMessage(prompt);
 
-      // Refresh decks
       setDecksLoading(true);
-      const data = await fetchDecks();
+      await loadDecks();
 
-      // Transform and find new deck
-      const transformed = await Promise.all(data.map(async (deck) => {
-        const cards = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
-        const commanderName = (deck.deck_name || "").trim();
-
-        let colors = ['W'];
-        try {
-          const scryRes = await fetch(`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(commanderName)}`);
-          if (scryRes.ok) {
-            const scryData = await scryRes.json();
-            colors = scryData.color_identity || ['C'];
-          }
-        } catch (e) {
-          console.error("Error fetching commander colors", e);
-        }
-
-        return {
-          id: deck.id,
-          name: commanderName,
-          commander: commanderName,
-          commanderImage: `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(commanderName)}&format=image&version=art_crop`,
-          bracket: deck.bracket || '2',
-          type: deck.type,
-          partner: deck.partner,
-          cardCount: cards.reduce((sum, c) => sum + (parseInt(c.quantity) || 1), 0),
-          cards: cards.map((c, idx) => ({
-            id: `card-${deck.id}-${idx}`,
-            name: c.name,
-            quantity: parseInt(c.quantity) || 1,
-            type: c.type || '',
-            details: c.details || '',
-            manaCost: c.mana_cost || '',
-            image: c.version || `https://api.scryfall.com/cards/named?exact=${encodeURIComponent(c.name)}&format=image&version=normal`,
-            version: c.version || '',
-          })),
-          colors: colors,
-          created_at: deck.created_at,
-        };
-      }));
-
-      setDecks(transformed);
-      setDecksLoading(false);
-
-      // Find the deck that wasn't in currentDecks
-      const newDeck = transformed.find(d => !currentDecks.some(cd => String(cd.id) === String(d.id)));
-
-      if (newDeck) {
-        message.success('Mazo creado con éxito');
-        setModalOpen(false);
-        navigate(`/deck/${newDeck.id}`);
-      } else {
-        message.info('El mazo se ha procesado');
-        setModalOpen(false);
-      }
+      const transformed = await fetchDecks(); // need an updated way to find new deck, but loadDecks updates state
+      
+      message.success('Mazo creado/procesado');
+      setModalOpen(false);
     } catch (err) {
       message.error('Error al crear el mazo: ' + err.message);
     } finally {
@@ -281,10 +239,41 @@ function App() {
     );
   };
 
+  const handleToggleVisibility = async (deck, isPublic) => {
+    try {
+      await toggleDeckVisibility(deck.id, isPublic);
+      handleUpdateDeck(deck.id, { is_public: isPublic });
+      message.success(`El mazo ahora es ${isPublic ? 'público' : 'privado'}`);
+    } catch (err) {
+      message.error(err.message);
+    }
+  };
+
+  const openCopyModal = (deck) => {
+    setDeckToCopy(deck);
+    setCopyModalOpen(true);
+  };
+
+  const submitCopyDeck = async (deckId, isPublic) => {
+    setCopyingDeck(true);
+    try {
+      const newDeckRaw = await copyDeck(deckId, isPublic);
+      message.success('Mazo copiado a tu colección');
+      setCopyModalOpen(false);
+      setDeckToCopy(null);
+      await loadDecks();
+      navigate(`/deck/${newDeckRaw.id}`);
+    } catch (err) {
+      message.error(err.message);
+    } finally {
+      setCopyingDeck(false);
+    }
+  };
+
   // ── Loading state ──
   if (!authChecked) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#0d0f1a' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', background: '#12100d' }}>
         <Spin size="large" />
       </div>
     );
@@ -311,6 +300,19 @@ function App() {
             path="/"
             element={
               <MainPage
+                chatMessages={chatMessages}
+                isChatTyping={isChatTyping}
+                onSendMessage={handleSendMessage}
+                isChatOpen={isChatOpen}
+                setIsChatOpen={setIsChatOpen}
+                onCopy={openCopyModal}
+              />
+            }
+          />
+          <Route
+            path="/my-decks"
+            element={
+              <MyDecksPage
                 decks={decks}
                 decksLoading={decksLoading}
                 onDeleteDeck={handleDeleteDeck}
@@ -319,6 +321,8 @@ function App() {
                 onSendMessage={handleSendMessage}
                 isChatOpen={isChatOpen}
                 setIsChatOpen={setIsChatOpen}
+                onToggleVisibility={handleToggleVisibility}
+                onCopy={openCopyModal}
               />
             }
           />
@@ -326,6 +330,7 @@ function App() {
             path="/deck/:id"
             element={
               <DeckDetailPage
+                user={user}
                 decks={decks}
                 onUpdateDeck={handleUpdateDeck}
                 chatMessages={chatMessages}
@@ -335,6 +340,7 @@ function App() {
                 setIsChatOpen={setIsChatOpen}
                 setActiveDeckId={setActiveDeckId}
                 onRefreshDecks={loadDecks}
+                onCopy={openCopyModal}
               />
             }
           />
@@ -346,6 +352,17 @@ function App() {
         loading={creatingDeck}
         onClose={() => setModalOpen(false)}
         onSubmit={handleCreateDeck}
+      />
+
+      <CopyDeckModal
+        visible={copyModalOpen}
+        deck={deckToCopy}
+        loading={copyingDeck}
+        onCancel={() => {
+          setCopyModalOpen(false);
+          setDeckToCopy(null);
+        }}
+        onCopy={submitCopyDeck}
       />
     </div>
   );

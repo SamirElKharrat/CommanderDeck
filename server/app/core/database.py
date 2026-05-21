@@ -54,9 +54,29 @@ async def init_db():
             bracket   TEXT    DEFAULT '',
             partner   INTEGER DEFAULT 0,
             cards     TEXT    DEFAULT '[]',
+            is_public INTEGER DEFAULT 0,
+            original_deck_id INTEGER DEFAULT NULL,
+            owner_username TEXT DEFAULT '',
             created_at TEXT   DEFAULT (datetime('now'))
         );
         """)
+
+        # Migraciones (Añadir nuevas columnas si la tabla ya existía)
+        try:
+            await db.execute("ALTER TABLE decks ADD COLUMN is_public INTEGER DEFAULT 0")
+        except Exception:
+            pass
+            
+        try:
+            await db.execute("ALTER TABLE decks ADD COLUMN original_deck_id INTEGER DEFAULT NULL")
+        except Exception:
+            pass
+
+        try:
+            await db.execute("ALTER TABLE decks ADD COLUMN owner_username TEXT DEFAULT ''")
+        except Exception:
+            pass
+
 
         # Insertar roles por defecto si no existen
         await db.execute("INSERT OR IGNORE INTO roles (role_name) VALUES ('user')")

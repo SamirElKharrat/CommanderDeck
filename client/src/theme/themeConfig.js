@@ -3,80 +3,80 @@ import { theme } from 'antd';
 const themeConfig = {
   algorithm: theme.darkAlgorithm,
   token: {
-    // Primary gold accent
-    colorPrimary: '#d4a537',
-    colorInfo: '#d4a537',
+    // Primary amber/gold accent
+    colorPrimary: '#c4952a',
+    colorInfo: '#c4952a',
 
-    // Deep dark backgrounds
-    colorBgBase: '#0d0f1a',
-    colorBgContainer: '#13152a',
-    colorBgElevated: '#1a1d35',
-    colorBgLayout: '#0d0f1a',
+    // Deep parchment/tavern backgrounds
+    colorBgBase: '#12100d',
+    colorBgContainer: '#1a1710',
+    colorBgElevated: '#1f1b13',
+    colorBgLayout: '#12100d',
 
-    // Borders
-    colorBorder: '#2a2d4a',
-    colorBorderSecondary: '#1e2040',
+    // Borders (subtle gold)
+    colorBorder: 'rgba(196, 149, 42, 0.25)',
+    colorBorderSecondary: 'rgba(196, 149, 42, 0.15)',
 
-    // Text
-    colorText: '#c8cad4',
-    colorTextSecondary: '#8b8fa6',
-    colorTextTertiary: '#5d6080',
+    // Text (Parchment colors)
+    colorText: '#e8dcc4',
+    colorTextSecondary: '#b8a88a',
+    colorTextTertiary: '#5a4f3a',
 
     // Typography
-    fontFamily: "'Outfit', sans-serif",
-    fontSize: 14,
-    borderRadius: 8,
+    fontFamily: "'Crimson Pro', serif",
+    fontSize: 15,
+    borderRadius: 6,
 
     // Spacing
     marginLG: 24,
     paddingLG: 24,
 
     // Shadows
-    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.4)',
-    boxShadowSecondary: '0 2px 12px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 4px 24px rgba(0, 0, 0, 0.6)',
+    boxShadowSecondary: '0 2px 12px rgba(0, 0, 0, 0.4)',
   },
   components: {
     Card: {
-      colorBgContainer: '#13152a',
-      colorBorderSecondary: '#2a2d4a',
-      borderRadiusLG: 12,
+      colorBgContainer: 'rgba(26, 23, 16, 0.8)',
+      colorBorderSecondary: 'rgba(196, 149, 42, 0.1)',
+      borderRadiusLG: 8,
       paddingLG: 16,
     },
     Button: {
-      borderRadius: 8,
+      borderRadius: 6,
       controlHeight: 38,
-      fontWeight: 500,
+      fontWeight: 600,
     },
     Modal: {
-      colorBgElevated: '#1a1d35',
-      borderRadiusLG: 16,
+      colorBgElevated: '#1a1710',
+      borderRadiusLG: 12,
     },
     Input: {
-      colorBgContainer: '#0d0f1a',
-      colorBorder: '#2a2d4a',
-      borderRadius: 8,
+      colorBgContainer: '#12100d',
+      colorBorder: 'rgba(196, 149, 42, 0.2)',
+      borderRadius: 6,
     },
     Select: {
-      colorBgContainer: '#0d0f1a',
-      colorBorder: '#2a2d4a',
-      borderRadius: 8,
+      colorBgContainer: '#12100d',
+      colorBorder: 'rgba(196, 149, 42, 0.2)',
+      borderRadius: 6,
     },
     Table: {
-      colorBgContainer: '#13152a',
-      headerBg: '#1a1d35',
-      borderColor: '#2a2d4a',
-      rowHoverBg: '#1e2040',
+      colorBgContainer: '#1a1710',
+      headerBg: '#12100d',
+      borderColor: 'rgba(196, 149, 42, 0.15)',
+      rowHoverBg: 'rgba(196, 149, 42, 0.05)',
     },
     Segmented: {
-      colorBgLayout: '#0d0f1a',
-      borderRadius: 8,
-      itemSelectedBg: '#d4a537',
-      itemSelectedColor: '#0d0f1a',
+      colorBgLayout: '#12100d',
+      borderRadius: 6,
+      itemSelectedBg: '#c4952a',
+      itemSelectedColor: '#12100d',
     },
     Layout: {
-      colorBgHeader: '#0b0d18',
-      colorBgBody: '#0d0f1a',
-      colorBgTrigger: '#1a1d35',
+      colorBgHeader: 'rgba(18, 16, 13, 0.95)',
+      colorBgBody: '#12100d',
+      colorBgTrigger: '#1a1710',
     },
     Popconfirm: {
       colorWarning: '#e8553d',
@@ -85,3 +85,4 @@ const themeConfig = {
 };
 
 export default themeConfig;
+

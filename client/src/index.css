@@ -1,5 +1,5 @@
 /* ============================================
-   CommanderDeck — Global Styles
+   CommanderDeck — Global Styles (Arcane Codex)
    ============================================ */
 
 * {
@@ -13,9 +13,9 @@ html {
 }
 
 body {
-  font-family: 'Outfit', sans-serif;
-  background: #0d0f1a;
-  color: #c8cad4;
+  font-family: 'Crimson Pro', serif;
+  background: #12100d;
+  color: #b8a88a;
   min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
@@ -27,29 +27,29 @@ body {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0d0f1a;
+  background: #12100d;
 }
 ::-webkit-scrollbar-thumb {
-  background: #2a2d4a;
+  background: rgba(196, 149, 42, 0.15);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #d4a537;
+  background: rgba(196, 149, 42, 0.4);
 }
 
 /* Typography helpers */
 h1, h2, h3, h4 {
-  font-family: 'Cinzel', serif;
-  color: #e8e6f0;
+  font-family: 'MedievalSharp', cursive;
+  color: #e8dcc4;
 }
 
 a {
-  color: #d4a537;
+  color: #c4952a;
   text-decoration: none;
   transition: color 0.2s ease;
 }
 a:hover {
-  color: #f0c050;
+  color: #e8b031;
 }
 
 /* Ant Design global overrides via CSS variables */
@@ -59,6 +59,6 @@ a:hover {
 
 /* Selection */
 ::selection {
-  background: rgba(212, 165, 55, 0.3);
-  color: #f0c050;
+  background: rgba(196, 149, 42, 0.3);
+  color: #e8b031;
 }

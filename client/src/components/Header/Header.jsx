@@ -1,22 +1,28 @@
 import { Button, Tooltip, Dropdown } from 'antd';
-import { PlusOutlined, CrownOutlined, RobotOutlined, UserOutlined, LogoutOutlined } from '@ant-design/icons';
+import { PlusOutlined, CrownOutlined, RobotOutlined, UserOutlined, LogoutOutlined, UnorderedListOutlined } from '@ant-design/icons';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './Header.css';
 
 export default function Header({ user, onCreateDeck, isChatOpen, onToggleChat, onLogout }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const isMainPage = location.pathname === '/';
 
   const userMenuItems = [
     {
       key: 'user-info',
       label: (
-        <span style={{ color: '#e8e6f0', fontWeight: 500 }}>
+        <span style={{ color: '#e8dcc4', fontWeight: 600 }}>
           {user?.user_name || 'Usuario'}
         </span>
       ),
       disabled: true,
+    },
+    { type: 'divider' },
+    {
+      key: 'my-decks',
+      label: 'Mis Mazos',
+      icon: <UnorderedListOutlined />,
+      onClick: () => navigate('/my-decks'),
     },
     { type: 'divider' },
     {
@@ -51,21 +57,19 @@ export default function Header({ user, onCreateDeck, isChatOpen, onToggleChat, o
             icon={<RobotOutlined />}
             onClick={onToggleChat}
             className={`app-header__chat-toggle ${isChatOpen ? 'active' : ''}`}
-            style={{ color: isChatOpen ? '#d4a537' : '#8b8fa6', fontSize: '20px' }}
+            style={{ color: isChatOpen ? '#c4952a' : '#b8a88a', fontSize: '20px' }}
           />
         </Tooltip>
         
-        {isMainPage && (
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            className="app-header__create-btn"
-            onClick={onCreateDeck}
-            id="create-deck-btn"
-          >
-            Crear Mazo
-          </Button>
-        )}
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          className="app-header__create-btn"
+          onClick={onCreateDeck}
+          id="create-deck-btn"
+        >
+          Crear Mazo
+        </Button>
 
         <Dropdown menu={{ items: userMenuItems }} placement="bottomRight" trigger={['click']}>
           <Button
@@ -81,3 +85,4 @@ export default function Header({ user, onCreateDeck, isChatOpen, onToggleChat, o
     </header>
   );
 }
+

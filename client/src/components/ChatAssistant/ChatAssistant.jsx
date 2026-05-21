@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { Input, Button } from 'antd';
+import { Input, Button, Popover } from 'antd';
 import { RobotOutlined, SendOutlined } from '@ant-design/icons';
 import './ChatAssistant.css';
+
+const { TextArea } = Input;
 
 export default function ChatAssistant({ 
   context = '', 
@@ -53,16 +55,28 @@ export default function ChatAssistant({
     return d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Convert markdown-like bold to simple strong tags for the recommendations
   const formatContent = (content) => {
     return content.split('\n').map((line, i) => {
-      // Very basic markdown bold parsing for the AI responses
-      const parts = line.split(/(\*\*.*?\*\*)/g);
+      // Split by **text** or [[text]]
+      const parts = line.split(/(\*\*.*?\*\*|\[\[.*?\]\])/g);
       return (
         <div key={i} style={{ minHeight: '1em' }}>
           {parts.map((part, j) => {
             if (part.startsWith('**') && part.endsWith('**')) {
               return <strong key={j}>{part.slice(2, -2)}</strong>;
+            } else if (part.startsWith('[[') && part.endsWith(']]')) {
+              const cardName = part.slice(2, -2);
+              return (
+                <Popover
+                  key={j}
+                  content={<img src={`https://api.scryfall.com/cards/named?exact=${encodeURIComponent(cardName)}&format=image&version=normal`} alt={cardName} style={{ width: 200, borderRadius: 10 }} onError={(e) => { e.target.style.display = 'none'; }} />}
+                  trigger="hover"
+                  placement="right"
+                  overlayInnerStyle={{ padding: 0, background: 'transparent', boxShadow: 'none' }}
+                >
+                  <span style={{ color: '#c4952a', cursor: 'pointer', textDecoration: 'underline' }}>{cardName}</span>
+                </Popover>
+              );
             }
             return part;
           })}
@@ -100,13 +114,15 @@ export default function ChatAssistant({
       </div>
 
       <div className="chat-assistant__input-area">
-        <Input
+        <TextArea
           ref={inputRef}
           placeholder={context ? `Pregunta sobre ${context}...` : 'Escribe tu pregunta...'}
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
+          autoSize={{ minRows: 1, maxRows: 4 }}
           id="chat-input"
+          style={{ resize: 'none' }}
         />
         <Button
           type="primary"

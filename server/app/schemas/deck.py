@@ -17,6 +17,7 @@ class DeckBase(BaseModel):
     bracket: Optional[str] = ""
     partner: int = 0
     cards: List[CardItem] = []
+    is_public: bool = False
 
 class DeckCreate(DeckBase):
     pass
@@ -27,11 +28,20 @@ class DeckUpdate(BaseModel):
     bracket: Optional[str] = None   
     partner: Optional[int] = None
     cards: Optional[List[CardItem]] = None
+    is_public: Optional[bool] = None
+
+class DeckCopyRequest(BaseModel):
+    is_public: bool = False
+
+class DeckVisibilityUpdate(BaseModel):
+    is_public: bool
 
 class DeckOut(DeckBase):
     id: int
     user_id: int
     created_at: datetime
+    owner_username: Optional[str] = ""
+    original_deck_id: Optional[int] = None
 
     model_config = ConfigDict(from_attributes=True)
 
