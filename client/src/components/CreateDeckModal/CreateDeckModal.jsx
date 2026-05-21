@@ -14,8 +14,9 @@ const BUDGET_OPTIONS = [
 const BRACKET_OPTIONS = [
   { value: '1', label: 'Bracket 1 - Casual bajo (Precons sin modificar, mazos temáticos)' },
   { value: '2', label: 'Bracket 2 - Casual medio (Precons mejorados, estrategias claras)' },
-  { value: '3', label: 'Bracket 3 - Optimizado (Alta sinergia, combos, rápido)' },
-  { value: '4', label: 'Bracket 4 - cEDH (Máxima eficiencia, combos letales)' },
+  { value: '3', label: 'Bracket 3 - Mejorado (Sinergias fuertes, sin combos infinitos tempranos)' },
+  { value: '4', label: 'Bracket 4 - Optimizado (Alta eficiencia, combos rápidos)' },
+  { value: '5', label: 'Bracket 5 - cEDH (Nivel competitivo, máxima eficiencia)' },
 ];
 
 export default function CreateDeckModal({ open, onClose, onSubmit, loading }) {
@@ -91,9 +92,9 @@ export default function CreateDeckModal({ open, onClose, onSubmit, loading }) {
       closable={!loading}
       cancelButtonProps={{ disabled: loading }}
     >
-      <Tabs 
-        activeKey={deckType} 
-        onChange={setDeckType} 
+      <Tabs
+        activeKey={deckType}
+        onChange={setDeckType}
         style={{ marginBottom: '16px' }}
         items={[
           {

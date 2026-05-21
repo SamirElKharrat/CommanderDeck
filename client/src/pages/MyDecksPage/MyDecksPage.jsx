@@ -14,7 +14,9 @@ export default function MyDecksPage({
   isChatTyping,
   onSendMessage,
   isChatOpen,
-  setIsChatOpen
+  setIsChatOpen,
+  onToggleVisibility,
+  onCopy
 }) {
   const [exportModalVisible, setExportModalVisible] = useState(false);
   const [selectedDeck, setSelectedDeck] = useState(null);
@@ -39,6 +41,8 @@ export default function MyDecksPage({
               decks={decks || []} 
               onDelete={onDeleteDeck} 
               onExport={handleExport}
+              onToggleVisibility={onToggleVisibility}
+              onCopy={onCopy}
             />
           </>
         )}

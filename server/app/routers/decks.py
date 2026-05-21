@@ -117,7 +117,7 @@ async def copy_deck(
     
     cursor = await db.execute(
         "INSERT INTO decks (user_id, deck_name, type, bracket, partner, cards, is_public, owner_username, original_deck_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-        (current_user['id'], f"Copy of {original['deck_name']}", original['type'], original['bracket'], original['partner'], original['cards'], int(copy_req.is_public), owner_username, original['id'])
+        (current_user['id'], f"{original['deck_name']} copy", original['type'], original['bracket'], original['partner'], original['cards'], int(copy_req.is_public), owner_username, original['id'])
     )
     new_id = cursor.lastrowid
     await db.commit()

@@ -69,7 +69,8 @@ function App() {
       const data = await fetchDecks();
       const transformed = await Promise.all(data.map(async (deck) => {
         const cards = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
-        const commanderName = (deck.deck_name || "").trim();
+        let commanderName = (deck.deck_name || "").trim();
+        commanderName = commanderName.replace(/(?:\s+copy)+$/i, '').trim();
 
         let colors = ['W'];
         try {
@@ -212,10 +213,17 @@ function App() {
       setDecksLoading(true);
       await loadDecks();
 
-      const transformed = await fetchDecks(); // need an updated way to find new deck, but loadDecks updates state
-      
+      const transformed = await fetchDecks();
       message.success('Mazo creado/procesado');
       setModalOpen(false);
+
+      if (transformed.length > currentDecks.length) {
+        const currentDeckIds = new Set(currentDecks.map(d => d.id));
+        const newDeck = transformed.find(d => !currentDeckIds.has(d.id));
+        if (newDeck) {
+          navigate(`/deck/${newDeck.id}`);
+        }
+      }
     } catch (err) {
       message.error('Error al crear el mazo: ' + err.message);
     } finally {

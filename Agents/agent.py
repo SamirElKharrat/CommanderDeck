@@ -14,7 +14,7 @@ from pyedhrec import EDHRec
 from langchain.tools import tool
 
 load_dotenv()
-SQLITE_PATH = os.path.join("C:\\Users\\coman\\Desktop\\CommanderDeck\\server", "commander_deck.db")
+SQLITE_PATH = os.path.join("..\\server", "commander_deck.db")
 API_BASE = "http://localhost:8000/api"
 
 # Token global que se establece antes de cada invocación del agente
@@ -34,13 +34,14 @@ def log_to_file(content: str):
         print(f"Error escribiendo log: {e}")
 
 @tool
-def get_commander_deck(commander: str, budget: str):
+def get_commander_deck(commander: str, budget: str, bracket: str = "2"):
     """
     Obtiene el deck promedio de un commander de EDHRec y lo guardara en ChromaDB.
     
     Args:
         commander (str): El nombre del commander.
         budget (str): El presupuesto del deck (budget o expensive). Si no se dice budget se queda como budget
+        bracket (str, optional): El nivel de poder del mazo (1 a 5). Por defecto "2".
     
     Returns:
         str: El deck promedio del commander.
@@ -72,7 +73,7 @@ def get_commander_deck(commander: str, budget: str):
         response = requests.post(f"{API_BASE}/decks", json={
             "deck_name": commander,
             "type": "commander",
-            "bracket": "2",
+            "bracket": bracket,
             "partner": 0,
             "cards": cards
         }, headers=_auth_headers())
@@ -81,6 +82,76 @@ def get_commander_deck(commander: str, budget: str):
         return f"Error al obtener el deck de {commander}: {e}"
     
     return f"El deck de {commander} ha sido creado"
+
+@tool
+def create_deck(commander: str, bracket: str, card_list: list[str]):
+    """
+    Crea un nuevo deck experimental. Esta herramienta SOLO debe usarse después de generar un deck experimental usando mtg-commander-deck.
+    
+    Args:
+        commander (str): El nombre del commander.
+        bracket (str): El bracket del deck (ej. "2").
+        card_list (list[str]): La lista de cartas con sus cantidades, ej: ["1 Sol Ring", "1 Lightning Bolt"].
+    
+    Returns:
+        str: Confirmación de creación del deck.
+    """
+    edhrec = EDHRec()
+    cards_json = []
+
+    for card in card_list:
+        try:
+            quantity = card.split(" ", 1)[0]
+            card_name = card.split(" ", 1)[1]
+        except IndexError:
+            continue
+            
+        try:
+            card_details = edhrec.get_card_details(card_name)
+        except:
+            # Si falla, añadimos información básica
+            cards_json.append({
+                "name": card_name,
+                "quantity": quantity,
+                "details": "",
+                "type": "",
+                "mana_cost": "",
+                "version": ""
+            })
+            continue
+
+        unique_art = card_details.get("unique_artwork", [])
+        image_uri = ""
+        if unique_art and len(unique_art) > 0:
+            image_uris = unique_art[0].get("image_uris", [])
+            if image_uris and len(image_uris) > 0:
+                image_uri = image_uris[0]
+
+        cards_json.append({
+            "name": card_details.get("name", card_name),
+            "quantity": quantity,
+            "details": card_details.get("oracle_text", ""),
+            "type": card_details.get("type", ""),
+            "mana_cost": card_details.get("mana_cost", ""),
+            "version": image_uri
+        })
+
+    try:
+        response = requests.post(f"{API_BASE}/decks", json={
+            "deck_name": commander,
+            "type": "commander",
+            "bracket": bracket,
+            "partner": 0,
+            "cards": cards_json
+        }, headers=_auth_headers())
+        
+        if not response.ok:
+            return f"Error al crear el deck experimental: {response.text}"
+            
+    except Exception as e:
+        return f"Error al crear el deck experimental: {e}"
+    
+    return f"El deck experimental de {commander} ha sido creado correctamente en la base de datos."
 
 @tool
 def add_cards(deck_id: int, card_list: list[str]):
@@ -249,11 +320,11 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
         )
  
         tools = await _client.get_tools()
-        custom_tools = [get_commander_deck, add_cards, remove_cards, deck_info, update_deck, cards_check]
+        custom_tools = [get_commander_deck, create_deck, add_cards, remove_cards, deck_info, update_deck, cards_check]
         all_tools = tools + custom_tools
  
         nvidiaModel = ChatGoogleGenerativeAI(
-            model="gemini-3-flash-preview",
+            model="gemini-3.1-flash-lite",
             api_key="",
             temperature=1,
             top_p=1,
@@ -282,10 +353,14 @@ async def process_prompt(prompt: str, thread_id: str = None, token: str = "", de
                 "FORMATO DE CARTAS\n"
                 "- Para añadir o quitar cartas usa el formato: 'cantidad nombre_carta'.\n"
                 "- Cuando menciones el nombre de una carta de Magic en tu respuesta textual, envuélvelo SIEMPRE entre dobles corchetes, por ejemplo: [[Sol Ring]] o [[Atraxa, Praetors' Voice]]. Esto es vital para el frontend.\n\n"
+                "BRACKETS DE PODER (1-5)\n"
+                "- En Magic Commander, los mazos se dividen en 5 brackets de poder (1 es nivel bajo, 5 es máximo/cEDH).\n"
+                "- Aplica el bracket correcto si el usuario lo especifica o dedúcelo de la conversación. Si no se especifica y no se puede deducir, asume bracket 2.\n\n"
                 "PRESUPUESTO\n"
                 "Si el usuario no indica presupuesto, asume siempre 'budget'.\n\n"
                 "CREACION DE MAZOS\n"
-                "Usa get_commander_deck para crear mazos normales. Solo usa la herramienta mtg-commander-deck si el usuario explícitamente pide un 'mazo experimental'.\n\n"
+                "Usa get_commander_deck para crear mazos normales. Solo usa la herramienta mtg-commander-deck si el usuario explícitamente pide un 'mazo experimental'. "
+                "Cuando el usuario pida un mazo experimental, primero usa mtg-commander-deck para obtener la lista de cartas, y DESPUÉS usa obligatoriamente la herramienta create_deck para guardar ese mazo en la base de datos.\n\n"
                 "REGLA DE 100 CARTAS\n"
                 "- Un mazo de Commander DEBE tener exactamente 100 cartas (incluyendo el comandante).\n"
                 "- Cuando crees un mazo o revises uno existente, comprueba el total de cartas.\n"

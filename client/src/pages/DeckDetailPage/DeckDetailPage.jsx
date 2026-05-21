@@ -54,7 +54,7 @@ export default function DeckDetailPage({
         try {
           const res = await fetch(`http://localhost:8000/api/decks/${id}`, {
             headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`
+              'Authorization': `Bearer ${localStorage.getItem('access_token')}`
             }
           });
           if (!res.ok) throw new Error("Deck no encontrado");
@@ -163,7 +163,7 @@ export default function DeckDetailPage({
             )}
             
             <p className="deck-detail__commander-name">
-              {deck.commander} {deck.owner_username && !isOwner && <span style={{ color: '#c4952a', marginLeft: '8px', fontSize: '14px' }}>por @{deck.owner_username}</span>}
+              {deck.commander} {deck.owner_username && <span style={{ color: '#c4952a', marginLeft: '8px', fontSize: '14px' }}>por @{deck.owner_username}</span>}
             </p>
 
             <div className="deck-detail__meta-row">

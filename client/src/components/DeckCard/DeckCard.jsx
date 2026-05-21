@@ -67,13 +67,13 @@ export default function DeckCard({ deck, onDelete, onExport, onCopy, onToggleVis
       </div>
 
       <div className="deck-card__body">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <h3 className="deck-card__name">{deck.name}</h3>
             <p className="deck-card__commander">{deck.commander}</p>
           </div>
-          {isPublicView && deck.owner_username && (
-            <span style={{ fontSize: '12px', color: '#c4952a', background: 'rgba(196,149,42,0.1)', padding: '2px 8px', borderRadius: '12px' }}>
+          {deck.owner_username && (
+            <span style={{ flexShrink: 0, fontSize: '12px', color: '#c4952a', background: 'rgba(196,149,42,0.1)', padding: '2px 8px', borderRadius: '12px', maxWidth: '100px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               @{deck.owner_username}
             </span>
           )}

@@ -30,7 +30,8 @@ export default function MainPage({
 
       const transformed = await Promise.all(data.map(async (deck) => {
         const cards = typeof deck.cards === 'string' ? JSON.parse(deck.cards) : deck.cards;
-        const commanderName = (deck.deck_name || "").trim();
+        let commanderName = (deck.deck_name || "").trim();
+        commanderName = commanderName.replace(/(?:\s+copy)+$/i, '').trim();
 
         let colors = ['W'];
         try {
